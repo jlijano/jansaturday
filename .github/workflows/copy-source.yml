@@ -1,0 +1,61 @@
+name: Copy source repository
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  copy:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout destination
+        uses: actions/checkout@v4
+        with:
+          path: destination
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          repository: jlijano/jlijano
+          ref: main
+          path: source
+          persist-credentials: false
+
+      - name: Copy source contents
+        run: |
+          cp -a source/. destination/
+          rm -rf destination/.git
+          cp -a source/.git /tmp/source-git-backup 2>/dev/null || true
+
+      - name: Restore destination Git metadata
+        run: |
+          rm -rf destination/.git
+          git -C destination init
+          git -C destination remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git -C destination fetch origin main
+          git -C destination checkout -B main origin/main
+          cp -a source/. destination/
+          rm -rf destination/.git
+          git clone --no-checkout "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" /tmp/dest-git
+          cp -a /tmp/dest-git/.git destination/.git
+          git -C destination checkout -B main origin/main
+          cp -a source/. destination/
+          rm -rf destination/.git/index.lock
+
+      - name: Commit copied files
+        run: |
+          cd destination
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Copy contents from jlijano/jlijano"
+          git push origin main
