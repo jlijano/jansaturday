@@ -1,0 +1,38 @@
+name: Clean maroon accents
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Clean accent CSS
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('tools-clients.css')
+          s = p.read_text()
+          s = s.replace('#4E2911', '#4E0911')
+          marker = '/* WHITE + CREAM WITH MAROON ACCENTS */'
+          first = s.find(marker)
+          if first != -1:
+              second = s.find(marker, first + len(marker))
+              if second != -1:
+                  s = s[:second].rstrip() + '\n'
+          p.write_text(s)
+          PY
+      - name: Commit cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools-clients.css
+          git commit -m "Clean maroon accent overrides"
+          git push
