@@ -4,7 +4,7 @@
   overflow: hidden;
   background:
     radial-gradient(circle at 76% 42%, rgba(117, 54, 255, .18), transparent 34rem),
-    linear-gradient(120deg, #061024 0%, #071127 48%, #11103d 100%);
+    linear-gradient(120deg, #260707 0%, #071127 48%, #11103d 100%);
 }
 
 .hero .container {
