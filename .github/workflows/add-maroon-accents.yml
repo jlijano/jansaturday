@@ -1,0 +1,78 @@
+name: Add maroon accents
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add maroon accent layer
+        run: |
+          cat >> tools-clients.css <<'EOF'
+
+/* WHITE + CREAM WITH MAROON ACCENTS */
+:root{
+  --brand-maroon:#4E0911;
+  --brand-maroon-dark:#260707;
+  --brand-maroon-soft:#9D5F66;
+  --brand-cream:#E4CEC2;
+  --brand-cream-light:#FAF1EC;
+  --accent-purple:#4E0911;
+  --accent-violet:#7A3941;
+  --accent-blue:#9D5F66;
+  --accent-cyan:#4E0911;
+  --border-hover:rgba(78,9,17,.42);
+}
+
+/* Brand and navigation */
+.brand strong{color:#4E0911!important}
+.desktop-nav a:hover,.desktop-nav a.active{color:#4E0911!important}
+.desktop-nav a::after{background:#4E0911!important}
+.mobile-menu a:hover,.mobile-menu a:focus-visible{color:#4E0911!important}
+
+/* Hero and section accents */
+.eyebrow,.section-label,.mini-label,.contact-copy>a{color:#4E0911!important}
+.section-label i{background:#4E0911!important}
+.hero-role span{background:linear-gradient(135deg,#4E0911 0%,#7A3941 55%,#9D5F66 100%)!important;background-clip:text!important;-webkit-background-clip:text!important;color:transparent!important}
+
+/* Primary actions */
+.button{background:linear-gradient(135deg,#4E0911,#7A3941)!important;color:#FFFDFC!important;box-shadow:0 12px 30px rgba(78,9,17,.18)!important}
+.button:hover{background:linear-gradient(135deg,#260707,#4E0911)!important;box-shadow:0 16px 34px rgba(78,9,17,.26)!important}
+.outline-button{border-color:rgba(78,9,17,.24)!important;color:#4E0911!important}
+.outline-button:hover{border-color:#4E0911!important;color:#4E0911!important;background:#FAF1EC!important}
+.text-link:hover{color:#4E0911!important}
+
+/* Cards and controls */
+.stat-card:hover,.service-card:hover,.project-card:hover,.client-card:hover{border-color:rgba(78,9,17,.38)!important;box-shadow:0 22px 48px rgba(78,9,17,.10)!important}
+.stat-card .icon,.service-icon,.project-arrow{color:#4E0911!important}
+.project-arrow{background:#F3E4DA!important}
+.client-logo{background:linear-gradient(135deg,#4E0911,#9D5F66)!important;color:#FFFDFC!important}
+.client-type{border-color:rgba(78,9,17,.22)!important;background:rgba(78,9,17,.06)!important;color:#4E0911!important}
+
+/* Forms and focus */
+.field input:focus,.field textarea:focus{border-color:#4E0911!important;box-shadow:0 0 0 3px rgba(78,9,17,.12)!important}
+:focus-visible{outline-color:#4E0911!important}
+
+/* Social */
+.social-links a:hover,.social-links .linkedin-link:hover,.social-links .linkedin-link:focus-visible{color:#4E0911!important;border-color:#4E0911!important;background:#FFFDFC!important;box-shadow:0 12px 28px rgba(78,9,17,.12)!important}
+
+/* Footer link accents */
+.footer-inner a:hover{color:#4E0911!important}
+EOF
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools-clients.css
+          git commit -m "Add maroon accents to white and cream UI"
+          git push
