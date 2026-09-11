@@ -169,3 +169,37 @@
       <p>${service.description}</p>
     </article>`).join('');
 })();
+
+(() => {
+  const toolsRoot = document.querySelector('.tools-grid');
+  const toolsTitle = document.querySelector('#tools-title');
+  const toolsIntro = document.querySelector('.tools-intro');
+  if (!toolsRoot) return;
+
+  if (toolsTitle) toolsTitle.textContent = 'Platforms used';
+  if (toolsIntro) toolsIntro.textContent = 'I’ve worked with a range of tools for collaboration, cloud services, project delivery, service operations, design, reporting, development, and automation.';
+
+  const platforms = [
+    ['M365', 'Microsoft 365', 'Modern workplace'],
+    ['TEAMS', 'Microsoft Teams', 'Collaboration'],
+    ['SP', 'SharePoint', 'Intranets & content'],
+    ['AZ', 'Microsoft Azure', 'Cloud services'],
+    ['PP', 'Power Platform', 'Automation & apps'],
+    ['JIRA', 'Jira', 'Project tracking'],
+    ['ASANA', 'Asana', 'Work management'],
+    ['MON', 'Monday.com', 'Operations planning'],
+    ['GLPI', 'GLPI', 'IT service & assets'],
+    ['GWS', 'Google Workspace', 'Productivity suite'],
+    ['GH', 'GitHub', 'Version control'],
+    ['AI', 'Generative AI Tools', 'Research & automation'],
+    ['PBI', 'Power BI', 'Reporting & insights'],
+    ['CANVA', 'Canva', 'Visual communication'],
+    ['FIGMA', 'Figma', 'UI collaboration']
+  ];
+
+  toolsRoot.innerHTML = platforms.map(([mark, name, description]) => `
+    <article class="tool-card">
+      <span class="tool-mark">${mark}</span>
+      <div><strong>${name}</strong><br><span>${description}</span></div>
+    </article>`).join('');
+})();
