@@ -171,35 +171,40 @@
 })();
 
 (() => {
-  const toolsRoot = document.querySelector('.tools-grid');
-  const toolsTitle = document.querySelector('#tools-title');
-  const toolsIntro = document.querySelector('.tools-intro');
-  if (!toolsRoot) return;
+  const toolsSection = document.querySelector('#tools');
+  const toolsRoot = toolsSection?.querySelector('.tools-grid');
+  if (!toolsSection || !toolsRoot) return;
 
-  if (toolsTitle) toolsTitle.textContent = 'Platforms used';
-  if (toolsIntro) toolsIntro.textContent = 'I’ve worked with a range of tools for collaboration, cloud services, project delivery, service operations, design, reporting, development, and automation.';
+  const intro = toolsSection.querySelector('.tools-intro');
+  if (intro) {
+    intro.textContent = 'Platforms I use to design AI-enabled solutions, automate workflows, connect business systems, generate insights, collaborate with teams, and deliver practical digital experiences.';
+  }
 
   const platforms = [
-    ['M365', 'Microsoft 365', 'Modern workplace'],
-    ['TEAMS', 'Microsoft Teams', 'Collaboration'],
-    ['SP', 'SharePoint', 'Intranets & content'],
-    ['AZ', 'Microsoft Azure', 'Cloud services'],
-    ['PP', 'Power Platform', 'Automation & apps'],
-    ['JIRA', 'Jira', 'Project tracking'],
-    ['ASANA', 'Asana', 'Work management'],
-    ['MON', 'Monday.com', 'Operations planning'],
-    ['GLPI', 'GLPI', 'IT service & assets'],
-    ['GWS', 'Google Workspace', 'Productivity suite'],
-    ['GH', 'GitHub', 'Version control'],
-    ['AI', 'Generative AI Tools', 'Research & automation'],
-    ['PBI', 'Power BI', 'Reporting & insights'],
-    ['CANVA', 'Canva', 'Visual communication'],
-    ['FIGMA', 'Figma', 'UI collaboration']
+    { mark: 'M365', name: 'Microsoft 365', use: 'AI-enabled productivity, Copilot adoption, knowledge workflows, document automation, and connected business collaboration.' },
+    { mark: 'TEAMS', name: 'Microsoft Teams', use: 'Conversational AI, workflow notifications, approvals, team collaboration, and AI assistants embedded into everyday work.' },
+    { mark: 'SP', name: 'SharePoint', use: 'Structured knowledge bases, document intelligence, AI-ready content repositories, intranets, and automated information workflows.' },
+    { mark: 'AZ', name: 'Microsoft Azure', use: 'Cloud infrastructure for AI services, APIs, secure integrations, data processing, automation, and scalable digital solutions.' },
+    { mark: 'PP', name: 'Power Platform', use: 'Low-code apps, Power Automate workflows, AI-assisted processes, approvals, data capture, and business process automation.' },
+    { mark: 'JIRA', name: 'Jira', use: 'Managing AI initiatives, automation backlogs, delivery workflows, requirements, testing, and implementation progress.' },
+    { mark: 'ASANA', name: 'Asana', use: 'Coordinating AI projects, automation tasks, client deliverables, implementation plans, and cross-functional workflows.' },
+    { mark: 'MON', name: 'Monday.com', use: 'Visual workflow design, operational automation, AI project tracking, pipeline management, and process visibility.' },
+    { mark: 'GLPI', name: 'GLPI', use: 'Service and asset data that can support AI-assisted support workflows, automation, knowledge routing, and operational insights.' },
+    { mark: 'GWS', name: 'Google Workspace', use: 'AI-assisted productivity, Gemini-enabled workflows, collaborative content, data collection, and business process automation.' },
+    { mark: 'GH', name: 'GitHub', use: 'Building and versioning AI applications, automation scripts, APIs, prototypes, integrations, and production-ready digital solutions.' },
+    { mark: 'AI', name: 'Generative AI Tools', use: 'AI assistants, research, content generation, prompt systems, agentic workflows, prototyping, and business automation.' },
+    { mark: 'PBI', name: 'Power BI', use: 'Turning operational and AI-generated data into dashboards, decision support, performance insights, and measurable business outcomes.' },
+    { mark: 'CANVA', name: 'Canva', use: 'AI-assisted content creation, presentations, campaign assets, rapid visual concepts, and branded digital communication.' },
+    { mark: 'FIGMA', name: 'Figma', use: 'Designing AI-powered interfaces, user journeys, workflow prototypes, digital products, and collaborative solution concepts.' }
   ];
 
-  toolsRoot.innerHTML = platforms.map(([mark, name, description]) => `
+  toolsRoot.setAttribute('aria-label', 'Platforms supporting AI consulting and automation');
+  toolsRoot.innerHTML = platforms.map((platform) => `
     <article class="tool-card">
-      <span class="tool-mark">${mark}</span>
-      <div><strong>${name}</strong><br><span>${description}</span></div>
+      <span class="tool-mark">${platform.mark}</span>
+      <div>
+        <strong>${platform.name}</strong><br>
+        <span>${platform.use}</span>
+      </div>
     </article>`).join('');
 })();
