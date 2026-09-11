@@ -96,3 +96,10 @@ body{background:#260707;color:#FAF1EC}
 .cta-card{background:linear-gradient(135deg,#4E0911 0%,#7A3941 55%,#260707 100%)}
 .contact-form{background:#4E0911}
 .field input,.field textarea{background:#260707;color:#FAF1EC}
+
+
+/* HERO VISUAL REMOVAL OVERRIDES */
+.hero-grid{grid-template-columns:minmax(0,1fr);max-width:980px;margin-inline:auto}
+.hero-copy{max-width:900px}
+.hero-description{max-width:760px}
+@media (max-width:1024px){.hero-grid{grid-template-columns:1fr}}
