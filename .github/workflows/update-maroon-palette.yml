@@ -1,0 +1,93 @@
+name: Apply maroon website palette
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply palette
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          files = [Path('index.html')] + list(Path('.').glob('*.css'))
+
+          replacements = {
+              '#061024': '#260707',
+              '#071024': '#260707',
+              '#08152d': '#32090D',
+              '#0a1731': '#3B0A10',
+              '#0b1730': '#3B0A10',
+              '#101c37': '#4E0911',
+              '#142241': '#5C1D25',
+              '#172344': '#5C1D25',
+              '#25104e': '#4E0911',
+              '#17265a': '#5C1D25',
+              '#0d3155': '#260707',
+              '#9346ff': '#4E0911',
+              '#734dff': '#7A3941',
+              '#654dff': '#7A3941',
+              '#297dff': '#9D5F66',
+              '#2587ff': '#9D5F66',
+              '#38a7ff': '#E4CEC2',
+              '#9a63ff': '#9D5F66',
+              '#b894ff': '#E4CEC2',
+              '#a877ff': '#E4CEC2',
+              '#ae88ff': '#E4CEC2',
+              '#baa2e8': '#E4CEC2',
+              '#9d70ff': '#9D5F66',
+              '#b995ff': '#E4CEC2',
+              '#ab80ff': '#E4CEC2',
+              '#ad83ff': '#E4CEC2',
+              '#b597ff': '#E4CEC2',
+              '#b794ff': '#E4CEC2',
+              '#f7f9ff': '#FAF1EC',
+              '#a8b0c4': '#E4CEC2',
+              '#75809a': '#9D5F66',
+              '#8e2de2': '#4E0911',
+              '#4f78ff': '#9D5F66'
+          }
+
+          for path in files:
+              if not path.exists():
+                  continue
+              text = path.read_text()
+              original = text
+              for old, new in replacements.items():
+                  text = text.replace(old, new)
+                  text = text.replace(old.upper(), new)
+              if path.name == 'index.html':
+                  text = text.replace('<meta name="theme-color" content="#260707">', '<meta name="theme-color" content="#4E0911">')
+              if text != original:
+                  path.write_text(text)
+
+          # Add a final theme override so key components consistently use the supplied palette.
+          style = Path('style.css')
+          css = style.read_text()
+          marker = '/* MAROON PALETTE OVERRIDES */'
+          if marker not in css:
+              css += '''\n\n/* MAROON PALETTE OVERRIDES */\n:root{\n  --bg-primary:#260707;\n  --bg-secondary:#32090D;\n  --section-bg:#3B0A10;\n  --card-bg:#4E0911;\n  --card-elevated:#5C1D25;\n  --text-primary:#FAF1EC;\n  --text-secondary:#E4CEC2;\n  --text-muted:#9D5F66;\n  --accent-purple:#4E0911;\n  --accent-violet:#7A3941;\n  --accent-blue:#9D5F66;\n  --accent-cyan:#E4CEC2;\n  --border-soft:rgba(228,206,194,.18);\n  --border-hover:rgba(157,95,102,.7);\n  --gradient:linear-gradient(135deg,#4E0911 0%,#7A3941 48%,#9D5F66 100%);\n}\nbody{background:#260707;color:#FAF1EC}\n.site-header.scrolled{background:rgba(38,7,7,.9)}\n.mobile-menu{background:rgba(38,7,7,.98)}\n.hero{background:radial-gradient(circle at 80% 20%,rgba(157,95,102,.20),transparent 28rem),radial-gradient(circle at 10% 50%,rgba(78,9,17,.26),transparent 24rem)}\n.hero-role span{background:linear-gradient(135deg,#9D5F66 0%,#E4CEC2 55%,#FAF1EC 100%);background-clip:text;-webkit-background-clip:text;color:transparent}\n.button{background:linear-gradient(135deg,#4E0911,#9D5F66);box-shadow:0 12px 34px rgba(78,9,17,.34)}\n.button:hover{box-shadow:0 16px 38px rgba(78,9,17,.46)}\n.portrait-orbit{background:linear-gradient(135deg,#4E0911,#9D5F66)}\n.section-label,.eyebrow,.mini-label,.contact-copy>a{color:#E4CEC2}\n.stat-card,.service-card,.project-card{background:linear-gradient(160deg,rgba(78,9,17,.96),rgba(38,7,7,.96))}\n.blog-card{background:linear-gradient(135deg,rgba(78,9,17,.86),rgba(38,7,7,.96))}\n.cta-card{background:linear-gradient(135deg,#4E0911 0%,#7A3941 55%,#260707 100%)}\n.contact-form{background:#4E0911}\n.field input,.field textarea{background:#260707;color:#FAF1EC}\n''' 
+              style.write_text(css)
+          PY
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html *.css
+          if git diff --cached --quiet; then
+            echo "No palette changes to commit"
+            exit 0
+          fi
+          git commit -m "Apply maroon color palette across website"
+          git push
