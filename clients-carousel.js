@@ -127,3 +127,45 @@
 
   loadGlide();
 })();
+
+(() => {
+  const servicesSection = document.querySelector('#services');
+  const servicesRoot = document.querySelector('[data-services]');
+  if (!servicesSection || !servicesRoot) return;
+
+  const heading = servicesSection.querySelector('#services-title');
+  const intro = servicesSection.querySelector('.section-head p');
+
+  if (heading) heading.textContent = 'AI solutions designed around real business workflows.';
+  if (intro) intro.textContent = 'From opportunity discovery to implementation, I help organisations apply AI where it can reduce manual work, improve decisions, strengthen customer experiences, and create scalable operational value.';
+
+  const services = [
+    {
+      icon: 'AI',
+      title: 'AI Strategy & Opportunity Mapping',
+      description: 'Identify high-value AI use cases, prioritise opportunities, assess readiness, and create a practical roadmap aligned with business goals, risk, and return on investment.'
+    },
+    {
+      icon: 'AUT',
+      title: 'AI Automation & Intelligent Workflows',
+      description: 'Automate repetitive tasks and connect business processes using AI, workflow tools, APIs, and intelligent decision steps that reduce manual effort and improve consistency.'
+    },
+    {
+      icon: 'AG',
+      title: 'AI Assistants, Agents & Business Tools',
+      description: 'Design and implement AI-powered assistants, agents, internal tools, knowledge workflows, and customer-facing experiences tailored to real operational needs.'
+    },
+    {
+      icon: 'GEN',
+      title: 'Generative AI, Video & Digital Content',
+      description: 'Create practical generative-AI solutions for content, video, creative production, campaign assets, prototypes, and digital experiences while keeping quality and brand consistency in focus.'
+    }
+  ];
+
+  servicesRoot.innerHTML = services.map((service) => `
+    <article class="service-card reveal is-visible">
+      <span class="service-icon" aria-hidden="true">${service.icon}</span>
+      <h3>${service.title}</h3>
+      <p>${service.description}</p>
+    </article>`).join('');
+})();
