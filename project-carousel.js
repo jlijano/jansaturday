@@ -2,22 +2,252 @@
 
 const projectCarousel = document.querySelector("[data-project-carousel]");
 const projectsSectionTitle = document.querySelector("#projects-title");
+const DATA_URL = "portfolio-videos.json";
+const REFRESH_INTERVAL_MS = 60000;
 
 if (projectsSectionTitle) {
   projectsSectionTitle.textContent = "Featured AI & Video Portfolio";
 }
 
-if (projectCarousel) {
-  projectCarousel.removeAttribute("tabindex");
-  projectCarousel.removeAttribute("aria-roledescription");
+const escapeHtml = (value = "") => String(value)
+  .replaceAll("&", "&amp;")
+  .replaceAll("<", "&lt;")
+  .replaceAll(">", "&gt;")
+  .replaceAll('"', "&quot;")
+  .replaceAll("'", "&#039;");
+
+const getGoogleDriveId = (url = "") => {
+  const match = String(url).match(/\/d\/([a-zA-Z0-9_-]+)/) || String(url).match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : "";
+};
+
+const normalizeVideoUrl = (url = "") => {
+  const value = String(url).trim();
+  const driveId = getGoogleDriveId(value);
+  if (driveId) return `https://drive.google.com/uc?export=download&id=${driveId}`;
+  return value;
+};
+
+const normalizeRows = (rows) => (Array.isArray(rows) ? rows : [])
+  .filter((item) => item && item.title && item.videoLink)
+  .map((item, index) => ({
+    id: item.id || `portfolio-video-${index + 1}`,
+    title: String(item.title).trim(),
+    description: String(item.description || "").trim(),
+    videoLink: String(item.videoLink).trim(),
+    status: String(item.status || "").trim()
+  }));
+
+let videos = [];
+let activeIndex = 0;
+let lastDataSignature = "";
+
+const getActiveVideo = () => projectCarousel?.querySelector(".portfolio-carousel__slide.is-active video");
+
+const safePlay = async (video) => {
+  if (!video) return;
+  video.muted = true;
+  video.defaultMuted = true;
+  video.playsInline = true;
+  try {
+    await video.play();
+  } catch (_) {
+    /* Browser may still block autoplay until the page receives interaction. */
+  }
+};
+
+const stopAllVideos = () => {
+  projectCarousel?.querySelectorAll("video").forEach((video) => {
+    video.pause();
+    video.currentTime = 0;
+  });
+};
+
+const setActiveSlide = (index, { announce = true } = {}) => {
+  if (!projectCarousel || videos.length === 0) return;
+
+  activeIndex = (index + videos.length) % videos.length;
+  const slides = [...projectCarousel.querySelectorAll(".portfolio-carousel__slide")];
+  const dots = [...projectCarousel.querySelectorAll(".portfolio-carousel__dot")];
+
+  slides.forEach((slide, slideIndex) => {
+    const active = slideIndex === activeIndex;
+    slide.classList.toggle("is-active", active);
+    slide.setAttribute("aria-hidden", String(!active));
+    const video = slide.querySelector("video");
+    if (video) {
+      if (active) {
+        video.muted = true;
+        video.defaultMuted = true;
+        video.setAttribute("muted", "");
+        video.setAttribute("autoplay", "");
+        safePlay(video);
+      } else {
+        video.pause();
+        video.currentTime = 0;
+      }
+    }
+  });
+
+  dots.forEach((dot, dotIndex) => {
+    const active = dotIndex === activeIndex;
+    dot.classList.toggle("is-active", active);
+    dot.setAttribute("aria-current", active ? "true" : "false");
+  });
+
+  const counter = projectCarousel.querySelector("[data-portfolio-counter]");
+  if (counter) counter.textContent = `${activeIndex + 1} / ${videos.length}`;
+
+  const status = projectCarousel.querySelector("[data-portfolio-status]");
+  if (announce && status) status.textContent = `${videos[activeIndex].title} is now playing.`;
+};
+
+const showNext = () => setActiveSlide(activeIndex + 1);
+const showPrevious = () => setActiveSlide(activeIndex - 1);
+
+const bindCarouselEvents = () => {
+  if (!projectCarousel) return;
+
+  projectCarousel.querySelector("[data-portfolio-next]")?.addEventListener("click", showNext);
+  projectCarousel.querySelector("[data-portfolio-prev]")?.addEventListener("click", showPrevious);
+
+  projectCarousel.querySelectorAll(".portfolio-carousel__dot").forEach((dot, index) => {
+    dot.addEventListener("click", () => setActiveSlide(index));
+  });
+
+  projectCarousel.querySelectorAll("video").forEach((video) => {
+    video.addEventListener("ended", () => {
+      if (videos.length > 1) showNext();
+      else {
+        video.currentTime = 0;
+        safePlay(video);
+      }
+    });
+  });
+
+  projectCarousel.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      showNext();
+    }
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      showPrevious();
+    }
+  });
+
+  let touchStartX = 0;
+  projectCarousel.addEventListener("touchstart", (event) => {
+    touchStartX = event.changedTouches[0]?.clientX ?? 0;
+  }, { passive: true });
+
+  projectCarousel.addEventListener("touchend", (event) => {
+    const touchEndX = event.changedTouches[0]?.clientX ?? 0;
+    const distance = touchEndX - touchStartX;
+    if (Math.abs(distance) < 45) return;
+    if (distance < 0) showNext();
+    else showPrevious();
+  }, { passive: true });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopAllVideos();
+    else safePlay(getActiveVideo());
+  });
+
+  document.addEventListener("pointerdown", () => safePlay(getActiveVideo()), { once: true });
+  document.addEventListener("keydown", () => safePlay(getActiveVideo()), { once: true });
+};
+
+const createSlideMarkup = (item, index) => {
+  const videoUrl = normalizeVideoUrl(item.videoLink);
+  const statusMarkup = item.status
+    ? `<span class="portfolio-carousel__badge">${escapeHtml(item.status)}</span>`
+    : "";
+
+  return `
+    <article class="portfolio-carousel__slide${index === 0 ? " is-active" : ""}" aria-hidden="${index === 0 ? "false" : "true"}" data-portfolio-slide>
+      <video class="portfolio-carousel__video" muted autoplay playsinline preload="metadata"${videos.length === 1 ? " loop" : ""} aria-label="${escapeHtml(item.title)}">
+        <source src="${escapeHtml(videoUrl)}" type="video/mp4">
+        Your browser does not support HTML5 video.
+      </video>
+      <div class="portfolio-carousel__shade" aria-hidden="true"></div>
+      <div class="portfolio-carousel__overlay">
+        ${statusMarkup}
+        <h3>${escapeHtml(item.title)}</h3>
+        ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}
+      </div>
+    </article>`;
+};
+
+const renderCarousel = () => {
+  if (!projectCarousel) return;
+
+  projectCarousel.className = "portfolio-carousel reveal";
   projectCarousel.removeAttribute("data-project-carousel");
-  projectCarousel.classList.add("portfolio-video");
-  projectCarousel.setAttribute("aria-label", "Featured AI video portfolio");
+  projectCarousel.setAttribute("tabindex", "0");
+  projectCarousel.setAttribute("aria-roledescription", "carousel");
+  projectCarousel.setAttribute("aria-label", "Featured AI and video portfolio");
+
+  if (videos.length === 0) {
+    projectCarousel.innerHTML = `
+      <div class="portfolio-carousel__empty">
+        <strong>No portfolio videos available yet.</strong>
+        <span>Add a Title, Description and Video Link to the portfolio tracker.</span>
+      </div>`;
+    return;
+  }
+
+  const dots = videos.map((item, index) => `
+    <button class="portfolio-carousel__dot${index === 0 ? " is-active" : ""}" type="button" aria-label="Show ${escapeHtml(item.title)}" aria-current="${index === 0 ? "true" : "false"}"></button>`).join("");
 
   projectCarousel.innerHTML = `
-    <video class="portfolio-video__player" controls playsinline preload="metadata" aria-label="AI portfolio video">
-      <source src="assets/videos/lv_0_20260912031425.mp4" type="video/mp4">
-      Your browser does not support the video element.
-    </video>
-  `;
+    <div class="portfolio-carousel__stage">
+      ${videos.map(createSlideMarkup).join("")}
+    </div>
+    <div class="portfolio-carousel__toolbar">
+      <div class="portfolio-carousel__dots" aria-label="Choose portfolio video">${dots}</div>
+      <div class="portfolio-carousel__nav">
+        <span class="portfolio-carousel__counter" data-portfolio-counter>1 / ${videos.length}</span>
+        <button class="portfolio-carousel__control" type="button" data-portfolio-prev aria-label="Previous portfolio video">←</button>
+        <button class="portfolio-carousel__control" type="button" data-portfolio-next aria-label="Next portfolio video">→</button>
+      </div>
+    </div>
+    <p class="portfolio-carousel__status" data-portfolio-status aria-live="polite"></p>`;
+
+  if (videos.length === 1) {
+    projectCarousel.querySelector(".portfolio-carousel__toolbar")?.classList.add("is-single");
+  }
+
+  bindCarouselEvents();
+  setActiveSlide(Math.min(activeIndex, videos.length - 1), { announce: false });
+};
+
+const loadPortfolioData = async ({ initial = false } = {}) => {
+  try {
+    const response = await fetch(`${DATA_URL}?v=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Portfolio data returned ${response.status}`);
+    const rows = normalizeRows(await response.json());
+    const signature = JSON.stringify(rows);
+
+    if (initial || signature !== lastDataSignature) {
+      lastDataSignature = signature;
+      videos = rows;
+      activeIndex = 0;
+      renderCarousel();
+    }
+  } catch (error) {
+    console.error("Unable to load portfolio video data:", error);
+    if (initial && projectCarousel) {
+      projectCarousel.innerHTML = `
+        <div class="portfolio-carousel__empty">
+          <strong>Portfolio videos could not be loaded.</strong>
+          <span>Please check the portfolio tracker data and video sharing permissions.</span>
+        </div>`;
+    }
+  }
+};
+
+if (projectCarousel) {
+  loadPortfolioData({ initial: true });
+  window.setInterval(() => loadPortfolioData(), REFRESH_INTERVAL_MS);
 }
