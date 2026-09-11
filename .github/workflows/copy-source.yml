@@ -28,24 +28,7 @@ jobs:
 
       - name: Copy source contents
         run: |
-          cp -a source/. destination/
-          rm -rf destination/.git
-          cp -a source/.git /tmp/source-git-backup 2>/dev/null || true
-
-      - name: Restore destination Git metadata
-        run: |
-          rm -rf destination/.git
-          git -C destination init
-          git -C destination remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-          git -C destination fetch origin main
-          git -C destination checkout -B main origin/main
-          cp -a source/. destination/
-          rm -rf destination/.git
-          git clone --no-checkout "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" /tmp/dest-git
-          cp -a /tmp/dest-git/.git destination/.git
-          git -C destination checkout -B main origin/main
-          cp -a source/. destination/
-          rm -rf destination/.git/index.lock
+          rsync -a --exclude='.git' source/ destination/
 
       - name: Commit copied files
         run: |
