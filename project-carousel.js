@@ -22,21 +22,21 @@ const getGoogleDriveId = (url = "") => {
   return match ? match[1] : "";
 };
 
-const getCloudinaryDirectUrl = (url = "") => {
+const isCloudinaryPlayerUrl = (url = "") => {
+  try {
+    return new URL(String(url).trim()).hostname === "player.cloudinary.com";
+  } catch (_) {
+    return false;
+  }
+};
+
+const getCloudinaryEmbedUrl = (url = "") => {
   try {
     const parsed = new URL(String(url).trim());
     if (parsed.hostname !== "player.cloudinary.com") return "";
-
-    const cloudName = parsed.searchParams.get("cloud_name");
-    const publicId = parsed.searchParams.get("public_id");
-    if (!cloudName || !publicId) return "";
-
-    const safePublicId = publicId
-      .split("/")
-      .map((segment) => encodeURIComponent(segment))
-      .join("/");
-
-    return `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/video/upload/q_auto/${safePublicId}.mp4`;
+    parsed.searchParams.set("autoplay", "true");
+    parsed.searchParams.set("muted", "true");
+    return parsed.toString();
   } catch (_) {
     return "";
   }
@@ -76,7 +76,7 @@ const safePlay = async (video) => {
   try {
     await video.play();
   } catch (_) {
-    /* Muted autoplay can still be blocked by some browser/device settings. */
+    /* Browser autoplay policies may still require user interaction. */
   }
 };
 
@@ -87,9 +87,9 @@ const stopAllNativeVideos = () => {
   });
 };
 
-const refreshDriveFrames = () => {
+const refreshEmbeddedFrames = () => {
   if (!projectCarousel) return;
-  projectCarousel.querySelectorAll(".portfolio-carousel__drive").forEach((frame) => {
+  projectCarousel.querySelectorAll(".portfolio-carousel__embed").forEach((frame) => {
     const slide = frame.closest(".portfolio-carousel__slide");
     const shouldPlay = slide?.classList.contains("is-active");
     const source = frame.dataset.src || "";
@@ -129,7 +129,7 @@ const setActiveSlide = (index, { announce = true } = {}) => {
     }
   });
 
-  refreshDriveFrames();
+  refreshEmbeddedFrames();
 
   dots.forEach((dot, dotIndex) => {
     const active = dotIndex === activeIndex;
@@ -195,7 +195,7 @@ const bindCarouselEvents = () => {
     if (document.hidden) stopAllNativeVideos();
     else {
       safePlay(getActiveNativeVideo());
-      refreshDriveFrames();
+      refreshEmbeddedFrames();
     }
   });
 
@@ -210,14 +210,14 @@ const createNativeVideoMarkup = (url, item) => `
   </video>`;
 
 const createMediaMarkup = (item, index) => {
-  const cloudinaryDirect = getCloudinaryDirectUrl(item.videoLink);
-  if (cloudinaryDirect) {
-    return createNativeVideoMarkup(cloudinaryDirect, item);
+  if (isCloudinaryPlayerUrl(item.videoLink)) {
+    const embedUrl = getCloudinaryEmbedUrl(item.videoLink);
+    return `<iframe class="portfolio-carousel__video portfolio-carousel__embed portfolio-carousel__cloudinary" src="${index === 0 ? escapeHtml(embedUrl) : "about:blank"}" data-src="${escapeHtml(embedUrl)}" title="${escapeHtml(item.title)}" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen frameborder="0" loading="${index === 0 ? "eager" : "lazy"}"></iframe>`;
   }
 
   const drivePreview = getDrivePreviewUrl(item.videoLink);
   if (drivePreview) {
-    return `<iframe class="portfolio-carousel__video portfolio-carousel__drive" src="${index === 0 ? escapeHtml(drivePreview) : "about:blank"}" data-src="${escapeHtml(drivePreview)}" title="${escapeHtml(item.title)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="${index === 0 ? "eager" : "lazy"}"></iframe>`;
+    return `<iframe class="portfolio-carousel__video portfolio-carousel__embed portfolio-carousel__drive" src="${index === 0 ? escapeHtml(drivePreview) : "about:blank"}" data-src="${escapeHtml(drivePreview)}" title="${escapeHtml(item.title)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen frameborder="0" loading="${index === 0 ? "eager" : "lazy"}"></iframe>`;
   }
 
   if (isDirectVideoUrl(item.videoLink)) {
