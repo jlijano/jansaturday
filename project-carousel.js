@@ -17,15 +17,19 @@ const escapeHtml = (value = "") => String(value)
   .replaceAll("'", "&#039;");
 
 const getGoogleDriveId = (url = "") => {
-  const match = String(url).match(/\/d\/([a-zA-Z0-9_-]+)/) || String(url).match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const value = String(url);
+  const match = value.match(/\/d\/([a-zA-Z0-9_-]+)/) || value.match(/[?&]id=([a-zA-Z0-9_-]+)/);
   return match ? match[1] : "";
 };
 
-const normalizeVideoUrl = (url = "") => {
-  const value = String(url).trim();
-  const driveId = getGoogleDriveId(value);
-  if (driveId) return `https://drive.google.com/uc?export=download&id=${driveId}`;
-  return value;
+const isDirectVideoUrl = (url = "") => {
+  const value = String(url).toLowerCase();
+  return /\.(mp4|webm|ogg)(\?|#|$)/.test(value) || value.includes("res.cloudinary.com/") || value.includes("cdn.");
+};
+
+const getDrivePreviewUrl = (url = "") => {
+  const driveId = getGoogleDriveId(url);
+  return driveId ? `https://drive.google.com/file/d/${driveId}/preview?autoplay=1` : "";
 };
 
 const normalizeRows = (rows) => (Array.isArray(rows) ? rows : [])
@@ -42,7 +46,7 @@ let videos = [];
 let activeIndex = 0;
 let lastDataSignature = "";
 
-const getActiveVideo = () => projectCarousel?.querySelector(".portfolio-carousel__slide.is-active video");
+const getActiveNativeVideo = () => projectCarousel?.querySelector(".portfolio-carousel__slide.is-active video");
 
 const safePlay = async (video) => {
   if (!video) return;
@@ -52,14 +56,29 @@ const safePlay = async (video) => {
   try {
     await video.play();
   } catch (_) {
-    /* Browser may still block autoplay until the page receives interaction. */
+    /* Muted autoplay can still be blocked by some browser/device settings. */
   }
 };
 
-const stopAllVideos = () => {
+const stopAllNativeVideos = () => {
   projectCarousel?.querySelectorAll("video").forEach((video) => {
     video.pause();
     video.currentTime = 0;
+  });
+};
+
+const refreshDriveFrames = () => {
+  if (!projectCarousel) return;
+  projectCarousel.querySelectorAll(".portfolio-carousel__drive").forEach((frame) => {
+    const slide = frame.closest(".portfolio-carousel__slide");
+    const shouldPlay = slide?.classList.contains("is-active");
+    const source = frame.dataset.src || "";
+
+    if (shouldPlay && source && frame.src !== source) {
+      frame.src = source;
+    } else if (!shouldPlay && frame.src && frame.src !== "about:blank") {
+      frame.src = "about:blank";
+    }
   });
 };
 
@@ -74,6 +93,7 @@ const setActiveSlide = (index, { announce = true } = {}) => {
     const active = slideIndex === activeIndex;
     slide.classList.toggle("is-active", active);
     slide.setAttribute("aria-hidden", String(!active));
+
     const video = slide.querySelector("video");
     if (video) {
       if (active) {
@@ -89,6 +109,8 @@ const setActiveSlide = (index, { announce = true } = {}) => {
     }
   });
 
+  refreshDriveFrames();
+
   dots.forEach((dot, dotIndex) => {
     const active = dotIndex === activeIndex;
     dot.classList.toggle("is-active", active);
@@ -99,7 +121,7 @@ const setActiveSlide = (index, { announce = true } = {}) => {
   if (counter) counter.textContent = `${activeIndex + 1} / ${videos.length}`;
 
   const status = projectCarousel.querySelector("[data-portfolio-status]");
-  if (announce && status) status.textContent = `${videos[activeIndex].title} is now playing.`;
+  if (announce && status) status.textContent = `${videos[activeIndex].title} is now displayed.`;
 };
 
 const showNext = () => setActiveSlide(activeIndex + 1);
@@ -150,26 +172,45 @@ const bindCarouselEvents = () => {
   }, { passive: true });
 
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stopAllVideos();
-    else safePlay(getActiveVideo());
+    if (document.hidden) stopAllNativeVideos();
+    else {
+      safePlay(getActiveNativeVideo());
+      refreshDriveFrames();
+    }
   });
 
-  document.addEventListener("pointerdown", () => safePlay(getActiveVideo()), { once: true });
-  document.addEventListener("keydown", () => safePlay(getActiveVideo()), { once: true });
+  document.addEventListener("pointerdown", () => safePlay(getActiveNativeVideo()), { once: true });
+  document.addEventListener("keydown", () => safePlay(getActiveNativeVideo()), { once: true });
+};
+
+const createMediaMarkup = (item, index) => {
+  const drivePreview = getDrivePreviewUrl(item.videoLink);
+
+  if (drivePreview) {
+    return `<iframe class="portfolio-carousel__video portfolio-carousel__drive" src="${index === 0 ? escapeHtml(drivePreview) : "about:blank"}" data-src="${escapeHtml(drivePreview)}" title="${escapeHtml(item.title)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="${index === 0 ? "eager" : "lazy"}"></iframe>`;
+  }
+
+  if (isDirectVideoUrl(item.videoLink)) {
+    return `<video class="portfolio-carousel__video" muted autoplay playsinline preload="metadata"${videos.length === 1 ? " loop" : ""} aria-label="${escapeHtml(item.title)}">
+      <source src="${escapeHtml(item.videoLink)}" type="video/mp4">
+      Your browser does not support HTML5 video.
+    </video>`;
+  }
+
+  return `<div class="portfolio-carousel__media-error" role="note">
+    <strong>Video preview unavailable</strong>
+    <span>This portfolio entry needs a direct MP4/CDN URL or a public Google Drive video link.</span>
+  </div>`;
 };
 
 const createSlideMarkup = (item, index) => {
-  const videoUrl = normalizeVideoUrl(item.videoLink);
   const statusMarkup = item.status
     ? `<span class="portfolio-carousel__badge">${escapeHtml(item.status)}</span>`
     : "";
 
   return `
     <article class="portfolio-carousel__slide${index === 0 ? " is-active" : ""}" aria-hidden="${index === 0 ? "false" : "true"}" data-portfolio-slide>
-      <video class="portfolio-carousel__video" muted autoplay playsinline preload="metadata"${videos.length === 1 ? " loop" : ""} aria-label="${escapeHtml(item.title)}">
-        <source src="${escapeHtml(videoUrl)}" type="video/mp4">
-        Your browser does not support HTML5 video.
-      </video>
+      ${createMediaMarkup(item, index)}
       <div class="portfolio-carousel__shade" aria-hidden="true"></div>
       <div class="portfolio-carousel__overlay">
         ${statusMarkup}
