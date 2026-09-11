@@ -22,6 +22,26 @@ const getGoogleDriveId = (url = "") => {
   return match ? match[1] : "";
 };
 
+const getCloudinaryDirectUrl = (url = "") => {
+  try {
+    const parsed = new URL(String(url).trim());
+    if (parsed.hostname !== "player.cloudinary.com") return "";
+
+    const cloudName = parsed.searchParams.get("cloud_name");
+    const publicId = parsed.searchParams.get("public_id");
+    if (!cloudName || !publicId) return "";
+
+    const safePublicId = publicId
+      .split("/")
+      .map((segment) => encodeURIComponent(segment))
+      .join("/");
+
+    return `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/video/upload/q_auto/${safePublicId}.mp4`;
+  } catch (_) {
+    return "";
+  }
+};
+
 const isDirectVideoUrl = (url = "") => {
   const value = String(url).toLowerCase();
   return /\.(mp4|webm|ogg)(\?|#|$)/.test(value) || value.includes("res.cloudinary.com/") || value.includes("cdn.");
@@ -183,23 +203,30 @@ const bindCarouselEvents = () => {
   document.addEventListener("keydown", () => safePlay(getActiveNativeVideo()), { once: true });
 };
 
-const createMediaMarkup = (item, index) => {
-  const drivePreview = getDrivePreviewUrl(item.videoLink);
+const createNativeVideoMarkup = (url, item) => `
+  <video class="portfolio-carousel__video" muted autoplay playsinline preload="auto"${videos.length === 1 ? " loop" : ""} aria-label="${escapeHtml(item.title)}">
+    <source src="${escapeHtml(url)}" type="video/mp4">
+    Your browser does not support HTML5 video.
+  </video>`;
 
+const createMediaMarkup = (item, index) => {
+  const cloudinaryDirect = getCloudinaryDirectUrl(item.videoLink);
+  if (cloudinaryDirect) {
+    return createNativeVideoMarkup(cloudinaryDirect, item);
+  }
+
+  const drivePreview = getDrivePreviewUrl(item.videoLink);
   if (drivePreview) {
     return `<iframe class="portfolio-carousel__video portfolio-carousel__drive" src="${index === 0 ? escapeHtml(drivePreview) : "about:blank"}" data-src="${escapeHtml(drivePreview)}" title="${escapeHtml(item.title)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="${index === 0 ? "eager" : "lazy"}"></iframe>`;
   }
 
   if (isDirectVideoUrl(item.videoLink)) {
-    return `<video class="portfolio-carousel__video" muted autoplay playsinline preload="metadata"${videos.length === 1 ? " loop" : ""} aria-label="${escapeHtml(item.title)}">
-      <source src="${escapeHtml(item.videoLink)}" type="video/mp4">
-      Your browser does not support HTML5 video.
-    </video>`;
+    return createNativeVideoMarkup(item.videoLink, item);
   }
 
   return `<div class="portfolio-carousel__media-error" role="note">
     <strong>Video preview unavailable</strong>
-    <span>This portfolio entry needs a direct MP4/CDN URL or a public Google Drive video link.</span>
+    <span>This portfolio entry needs a Cloudinary player URL, direct MP4/CDN URL, or a public Google Drive video link.</span>
   </div>`;
 };
 
@@ -282,7 +309,7 @@ const loadPortfolioData = async ({ initial = false } = {}) => {
       projectCarousel.innerHTML = `
         <div class="portfolio-carousel__empty">
           <strong>Portfolio videos could not be loaded.</strong>
-          <span>Please check the portfolio tracker data and video sharing permissions.</span>
+          <span>Please check the portfolio tracker data and video URL.</span>
         </div>`;
     }
   }
