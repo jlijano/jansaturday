@@ -297,7 +297,11 @@
 }
 
 .projects-carousel-section .portfolio-deck__dot:focus-visible,
-.projects-carousel-section .portfolio-deck__control:focus-visible,
+.projects-carousel-section .portfolio-deck__control:focus-visible {
+  outline: 3px solid #fff !important;
+  outline-offset: 3px !important;
+}
+
 .projects-carousel-section .portfolio-deck__preview:focus-visible {
   outline: 3px solid rgba(78, 9, 17, .42) !important;
   outline-offset: 3px !important;
