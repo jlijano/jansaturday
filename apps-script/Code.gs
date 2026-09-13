@@ -1,4 +1,5 @@
 const CONFIG = Object.freeze({
+  spreadsheetId: '1zqLyFmub3w5IlQT_JYuk1L-cv1MyJUKuWeC7_doyqi4',
   sheetName: 'Consultation Leads',
   notificationEmail: 'j.saturday.ai@gmail.com',
   calendlyUrl: 'https://calendly.com/j-saturday-ai',
@@ -31,11 +32,10 @@ function doPost(e) {
     lock.waitLock(10000);
 
     let rowNumber;
+    let sheet;
     try {
-      const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-      if (!spreadsheet) throw new Error('This script must be bound to the consultation Google Sheet.');
-
-      const sheet = spreadsheet.getSheetByName(CONFIG.sheetName);
+      const spreadsheet = SpreadsheetApp.openById(CONFIG.spreadsheetId);
+      sheet = spreadsheet.getSheetByName(CONFIG.sheetName);
       if (!sheet) throw new Error('Required sheet not found: ' + CONFIG.sheetName);
 
       assertHeaders_(sheet);
@@ -59,13 +59,32 @@ function doPost(e) {
       lock.releaseLock();
     }
 
-    sendLeadNotification_(payload, rowNumber);
-    sendClientReceipt_(payload);
+    const delivery = {
+      internalEmail: true,
+      clientEmail: true
+    };
+
+    try {
+      sendLeadNotification_(payload, rowNumber);
+    } catch (error) {
+      console.error('Internal notification email failed', error);
+      delivery.internalEmail = false;
+      appendNote_(sheet, rowNumber, 'Internal notification email failed.');
+    }
+
+    try {
+      sendClientReceipt_(payload);
+    } catch (error) {
+      console.error('Client receipt email failed', error);
+      delivery.clientEmail = false;
+      appendNote_(sheet, rowNumber, 'Client receipt email failed.');
+    }
 
     return responseHtml_({
       ok: true,
       row: rowNumber,
       requestToken: payload.requestToken,
+      delivery: delivery,
       message: 'Consultation request received.'
     });
   } catch (error) {
@@ -226,6 +245,13 @@ function buildCalendlyUrl_(name, email) {
   if (email) params.push('email=' + encodeURIComponent(email));
   if (!params.length) return CONFIG.calendlyUrl;
   return CONFIG.calendlyUrl + (CONFIG.calendlyUrl.indexOf('?') === -1 ? '?' : '&') + params.join('&');
+}
+
+function appendNote_(sheet, rowNumber, note) {
+  if (!sheet || !rowNumber) return;
+  const cell = sheet.getRange(rowNumber, 11);
+  const existing = String(cell.getDisplayValue() || '').trim();
+  cell.setValue(existing ? existing + '\n' + note : note);
 }
 
 function responseHtml_(result) {
