@@ -1,6 +1,6 @@
 "use strict";
 
-const INTRO_VIDEO_URL = "https://player.cloudinary.com/embed/?cloud_name=brfm6p40&public_id=lv_0_20260912150315&autoplay=true&muted=true";
+const INTRO_VIDEO_URL = "https://player.cloudinary.com/embed/?cloud_name=brfm6p40&public_id=lv_0_20260912150315&autoplay=true&muted=false";
 const INTRO_DESCRIPTION = "AI Consultant helping businesses adopt practical AI, automation, and intelligent digital solutions to work smarter and grow efficiently.";
 
 const setupProfileIntro = () => {
@@ -35,7 +35,7 @@ const setupProfileIntro = () => {
     style.id = "hero-intro-video-styles";
     style.textContent = `
       .hero .hero-grid{
-        grid-template-columns:minmax(0,.92fr) minmax(440px,1.08fr) !important;
+        grid-template-columns:minmax(0,1fr) minmax(320px,.72fr) !important;
         max-width:1180px;
         margin-inline:auto;
         gap:clamp(42px,6vw,88px);
@@ -45,13 +45,13 @@ const setupProfileIntro = () => {
       .hero .hero-description{max-width:560px;}
       .hero-intro-video{
         width:100%;
-        max-width:620px;
-        justify-self:end;
+        max-width:360px;
+        justify-self:center;
       }
       .hero-intro-video__frame{
         position:relative;
         width:100%;
-        aspect-ratio:16/9;
+        aspect-ratio:9/16;
         overflow:hidden;
         border:1px solid rgba(78,9,17,.2);
         border-radius:26px;
@@ -75,8 +75,9 @@ const setupProfileIntro = () => {
       }
       .hero-intro-video__label{
         position:absolute;
-        left:18px;
-        bottom:18px;
+        left:14px;
+        top:14px;
+        bottom:auto;
         z-index:3;
         padding:8px 12px;
         border:1px solid rgba(255,255,255,.2);
@@ -97,13 +98,14 @@ const setupProfileIntro = () => {
           gap:44px;
         }
         .hero-intro-video{
-          max-width:760px;
-          justify-self:stretch;
+          max-width:360px;
+          justify-self:center;
         }
       }
       @media(max-width:640px){
         .hero-intro-video__frame{border-radius:18px;}
-        .hero-intro-video__label{left:14px;bottom:14px;font-size:.68rem;}
+        .hero-intro-video{max-width:320px;}
+        .hero-intro-video__label{left:12px;top:12px;bottom:auto;font-size:.68rem;}
       }
     `;
     document.head.appendChild(style);
