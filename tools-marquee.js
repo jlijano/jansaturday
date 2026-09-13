@@ -160,3 +160,12 @@
     document.head.appendChild(style);
   }
 })();
+
+(() => {
+  if (document.querySelector('script[data-portfolio-deck-loader]')) return;
+  const script = document.createElement('script');
+  script.src = 'portfolio-deck.js';
+  script.defer = true;
+  script.dataset.portfolioDeckLoader = 'true';
+  document.head.appendChild(script);
+})();
