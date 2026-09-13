@@ -17,6 +17,8 @@
         <p class="consultation-modal__intro" id="consultation-description">Share a little context first. Once your request is received, you’ll continue to available consultation times.</p>
 
         <form class="consultation-form" method="post" novalidate data-consultation-form>
+          <input name="requestToken" type="hidden" value="">
+
           <div class="consultation-field">
             <label for="consultation-name">Name *</label>
             <input id="consultation-name" name="name" type="text" autocomplete="name" maxlength="120" required aria-describedby="consultation-name-error">
@@ -122,6 +124,7 @@
   let lastFocused = null;
   let submissionTimer = null;
   let submitting = false;
+  let activeRequestToken = '';
 
   const fields = {
     name: form.elements.namedItem('name'),
@@ -129,7 +132,8 @@
     company: form.elements.namedItem('company'),
     website: form.elements.namedItem('website'),
     aiInterest: form.elements.namedItem('aiInterest'),
-    message: form.elements.namedItem('message')
+    message: form.elements.namedItem('message'),
+    requestToken: form.elements.namedItem('requestToken')
   };
 
   function focusableElements() {
@@ -165,7 +169,9 @@
     let valid = true;
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    Object.values(fields).forEach((field) => field && setFieldError(field, ''));
+    Object.entries(fields).forEach(([name, field]) => {
+      if (name !== 'requestToken' && field) setFieldError(field, '');
+    });
 
     if (!fields.name?.value.trim()) {
       setFieldError(fields.name, 'Please enter your name.');
@@ -216,6 +222,11 @@
     submitButton.textContent = active ? 'Sending your details…' : 'Continue to Scheduling';
   }
 
+  function newRequestToken() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+  }
+
   function calendlyDestination() {
     const url = new URL(CALENDLY_URL);
     const name = fields.name?.value.trim();
@@ -223,6 +234,15 @@
     if (name) url.searchParams.set('name', name);
     if (email) url.searchParams.set('email', email);
     return url.toString();
+  }
+
+  function isGoogleScriptOrigin(origin) {
+    try {
+      const hostname = new URL(origin).hostname;
+      return hostname === 'script.google.com' || hostname.endsWith('.googleusercontent.com');
+    } catch {
+      return false;
+    }
   }
 
   triggers.forEach((trigger) => trigger.addEventListener('click', openModal));
@@ -262,6 +282,9 @@
     event.preventDefault();
     if (submitting || !validateForm()) return;
 
+    activeRequestToken = newRequestToken();
+    if (fields.requestToken) fields.requestToken.value = activeRequestToken;
+
     status.textContent = 'Sending your details…';
     status.removeAttribute('data-state');
     setSubmitting(true);
@@ -275,15 +298,16 @@
       setSubmitting(false);
       status.textContent = 'We could not confirm your request. Please try again.';
       status.dataset.state = 'error';
-    }, 15000);
+    }, 20000);
 
     form.submit();
   });
 
   window.addEventListener('message', (event) => {
-    if (event.source !== frame.contentWindow) return;
+    if (!isGoogleScriptOrigin(event.origin)) return;
     const data = event.data;
     if (!data || data.type !== 'consultation-form-result' || !data.payload) return;
+    if (!activeRequestToken || data.payload.requestToken !== activeRequestToken) return;
 
     clearTimeout(submissionTimer);
 
