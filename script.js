@@ -96,6 +96,7 @@ if (footer) {
         <h2 class="footer-reference__headline">Let’s build the future<br>of AI together</h2>
         <a class="footer-reference__cta" href="#contact">Get Started</a>
       </div>
+      <div class="footer-reference__logo" data-footer-logo aria-label="Jan Lijano AI Consulting"></div>
       <div class="footer-reference__bottom">
         <div class="footer-reference__brand">
           <strong>JAN LIJANO</strong>
@@ -124,9 +125,31 @@ const brandModule = document.createElement("script");
 brandModule.src = "brand-logo.js";
 brandModule.defer = true;
 brandModule.addEventListener("load", () => {
+  const syncFooterLogo = () => {
+    const source = document.querySelector('.brand--logo img');
+    const target = document.querySelector('[data-footer-logo]');
+    if (!source || !target || !source.src) return;
+    let logo = target.querySelector('img');
+    if (!logo) {
+      logo = document.createElement('img');
+      logo.className = 'footer-reference__logo-image';
+      logo.alt = 'Jan Lijano AI Consulting';
+      logo.decoding = 'async';
+      target.appendChild(logo);
+    }
+    if (logo.src !== source.src) logo.src = source.src;
+  };
+
+  syncFooterLogo();
+  const brandImage = document.querySelector('.brand--logo img');
+  if (brandImage && 'MutationObserver' in window) {
+    new MutationObserver(syncFooterLogo).observe(brandImage, { attributes: true, attributeFilter: ['src'] });
+  }
+
   const transparentBrandModule = document.createElement("script");
   transparentBrandModule.src = "brand-logo-transparent.js";
   transparentBrandModule.defer = true;
+  transparentBrandModule.addEventListener('load', () => window.setTimeout(syncFooterLogo, 150));
   document.body.appendChild(transparentBrandModule);
 });
 document.body.appendChild(brandModule);
