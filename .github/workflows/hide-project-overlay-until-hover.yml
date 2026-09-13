@@ -2,7 +2,8 @@ name: Hide project overlay until hover
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -13,63 +14,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Hide project metadata until hover or focus
+      - name: Add hover-only project metadata styles
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
+          if ! grep -q "PROJECT METADATA HOVER VISIBILITY" project-carousel.css; then
+            cat >> project-carousel.css <<'EOF'
 
-          p = Path('project-carousel.css')
-          s = p.read_text()
-
-          old_shade = '''.portfolio-carousel__shade {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background:
-    linear-gradient(180deg, rgba(38, 7, 7, .03) 0%, rgba(38, 7, 7, .08) 42%, rgba(38, 7, 7, .84) 100%),
-    linear-gradient(90deg, rgba(38, 7, 7, .5) 0%, rgba(38, 7, 7, .05) 55%, rgba(38, 7, 7, 0) 78%);
-  pointer-events: none;
-}
-'''
-          new_shade = '''.portfolio-carousel__shade {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background:
-    linear-gradient(180deg, rgba(38, 7, 7, .03) 0%, rgba(38, 7, 7, .08) 42%, rgba(38, 7, 7, .84) 100%),
-    linear-gradient(90deg, rgba(38, 7, 7, .5) 0%, rgba(38, 7, 7, .05) 55%, rgba(38, 7, 7, 0) 78%);
+/* PROJECT METADATA HOVER VISIBILITY */
+.portfolio-carousel__shade,
+.portfolio-carousel__overlay {
   opacity: 0;
   visibility: hidden;
-  pointer-events: none;
+}
+
+.portfolio-carousel__shade {
   transition: opacity .28s ease, visibility .28s ease;
 }
-'''
 
-          old_overlay = '''.portfolio-carousel__overlay {
-  position: absolute;
-  z-index: 3;
-  left: clamp(24px, 5vw, 64px);
-  right: clamp(24px, 5vw, 64px);
-  bottom: clamp(28px, 6vw, 64px);
-  max-width: 760px;
-  color: #FAF1EC;
-  text-shadow: 0 3px 20px rgba(0, 0, 0, .45);
-  pointer-events: none;
-}
-'''
-          new_overlay = '''.portfolio-carousel__overlay {
-  position: absolute;
-  z-index: 3;
-  left: clamp(24px, 5vw, 64px);
-  right: clamp(24px, 5vw, 64px);
-  bottom: clamp(28px, 6vw, 64px);
-  max-width: 760px;
-  color: #FAF1EC;
-  text-shadow: 0 3px 20px rgba(0, 0, 0, .45);
-  opacity: 0;
-  visibility: hidden;
+.portfolio-carousel__overlay {
   transform: translateY(14px);
-  pointer-events: none;
   transition: opacity .28s ease, visibility .28s ease, transform .28s ease;
 }
 
@@ -87,28 +49,20 @@ jobs:
   visibility: visible;
   transform: translateY(0);
 }
-'''
 
-          if old_shade not in s:
-              raise SystemExit('Expected shade block not found')
-          if old_overlay not in s:
-              raise SystemExit('Expected overlay block not found')
-
-          s = s.replace(old_shade, new_shade, 1)
-          s = s.replace(old_overlay, new_overlay, 1)
-
-          # Keep reduced-motion mode free of metadata animation.
-          s = s.replace(
-              '  .portfolio-carousel__slide,\n  .portfolio-carousel__dot,\n  .portfolio-carousel__control {',
-              '  .portfolio-carousel__slide,\n  .portfolio-carousel__shade,\n  .portfolio-carousel__overlay,\n  .portfolio-carousel__dot,\n  .portfolio-carousel__control {'
-          )
-
-          p.write_text(s)
-          PY
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-carousel__shade,
+  .portfolio-carousel__overlay {
+    transition: none;
+  }
+}
+EOF
+          fi
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add project-carousel.css
+          git diff --cached --quiet && exit 0
           git commit -m "Show project metadata only on hover or focus"
           git push
