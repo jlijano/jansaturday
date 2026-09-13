@@ -63,6 +63,42 @@ if ("IntersectionObserver" in window && !pageReduceMotion) {
 
 document.querySelector("[data-year]")?.replaceChildren(String(new Date().getFullYear()));
 
+const footer = document.querySelector('.site-footer');
+if (footer) {
+  if (!document.querySelector('link[data-footer-reference]')) {
+    const footerStyles = document.createElement('link');
+    footerStyles.rel = 'stylesheet';
+    footerStyles.href = 'footer-reference.css';
+    footerStyles.dataset.footerReference = 'true';
+    document.head.appendChild(footerStyles);
+  }
+
+  footer.classList.add('footer-reference');
+  footer.innerHTML = `
+    <div class="footer-reference__inner">
+      <div class="footer-reference__top">
+        <h2 class="footer-reference__headline">Let’s build the future<br>of AI together</h2>
+        <a class="footer-reference__cta" href="#contact">Get Started</a>
+      </div>
+      <div class="footer-reference__bottom">
+        <div class="footer-reference__brand">
+          <strong>JAN LIJANO</strong>
+          <span>· AI Consultant · © <span data-year></span></span>
+        </div>
+        <nav class="footer-reference__nav" aria-label="Footer navigation">
+          <a href="#home">Home</a>
+          <a href="#projects">Work</a>
+          <a href="#services">Services</a>
+          <a href="#about">About</a>
+        </nav>
+        <div class="footer-reference__social">
+          <a href="https://x.com/" target="_blank" rel="noopener noreferrer" aria-label="X">X</a>
+        </div>
+      </div>
+    </div>`;
+  footer.querySelector('[data-year]')?.replaceChildren(String(new Date().getFullYear()));
+}
+
 const processModule = document.createElement("script");
 processModule.src = "how-i-work.js";
 processModule.defer = true;
