@@ -1,67 +1,67 @@
 (() => {
   const root = document.querySelector('.tools-grid');
-  if (!root || root.dataset.toolsEnhanced === 'true') return;
+  if (!root || root.dataset.toolsTickerReady === 'true') return;
 
   const toolMeta = {
     'Microsoft 365': {
       icon: 'https://cdn.simpleicons.org/microsoft365/4E0911',
-      short: 'Copilot, productivity, document automation, and connected collaboration.'
+      short: 'Copilot & productivity'
     },
     'Microsoft Teams': {
       icon: 'https://cdn.simpleicons.org/microsoftteams/4E0911',
-      short: 'AI assistants, approvals, notifications, and collaborative workflows.'
+      short: 'Collaboration & assistants'
     },
     'SharePoint': {
       icon: 'https://cdn.simpleicons.org/microsoftsharepoint/4E0911',
-      short: 'Knowledge bases, AI-ready content, intranets, and document workflows.'
+      short: 'Knowledge & workflows'
     },
     'Microsoft Azure': {
       icon: 'https://cdn.simpleicons.org/microsoftazure/4E0911',
-      short: 'Cloud AI services, APIs, integrations, automation, and scalable solutions.'
+      short: 'Cloud AI & integrations'
     },
     'Power Platform': {
       icon: 'https://cdn.simpleicons.org/powerautomate/4E0911',
-      short: 'Low-code apps, Power Automate, approvals, and business process automation.'
+      short: 'Low-code automation'
     },
     'Jira': {
       icon: 'https://cdn.simpleicons.org/jira/4E0911',
-      short: 'AI project backlogs, requirements, testing, and delivery tracking.'
+      short: 'Delivery & tracking'
     },
     'Asana': {
       icon: 'https://cdn.simpleicons.org/asana/4E0911',
-      short: 'Project plans, client deliverables, automation tasks, and team coordination.'
+      short: 'Project coordination'
     },
     'Monday.com': {
       icon: 'https://cdn.simpleicons.org/mondaydotcom/4E0911',
-      short: 'Visual workflows, pipelines, automation, and operational visibility.'
+      short: 'Visual workflows'
     },
     'GLPI': {
       icon: 'https://cdn.simpleicons.org/glpi/4E0911',
-      short: 'Service, asset, support, and operational data for smarter workflows.'
+      short: 'Service & asset data'
     },
     'Google Workspace': {
       icon: 'https://cdn.simpleicons.org/googleworkspace/4E0911',
-      short: 'Gemini-enabled productivity, collaboration, data collection, and automation.'
+      short: 'Gemini & collaboration'
     },
     'GitHub': {
       icon: 'https://cdn.simpleicons.org/github/4E0911',
-      short: 'Versioning AI apps, scripts, APIs, prototypes, and production solutions.'
+      short: 'AI apps & versioning'
     },
     'Generative AI Tools': {
       icon: 'https://cdn.simpleicons.org/openai/4E0911',
-      short: 'AI assistants, research, prompting, agents, prototyping, and automation.'
+      short: 'Agents & prototyping'
     },
     'Power BI': {
       icon: 'https://cdn.simpleicons.org/powerbi/4E0911',
-      short: 'Dashboards, AI-generated insights, decision support, and performance reporting.'
+      short: 'Insights & reporting'
     },
     'Canva': {
       icon: 'https://cdn.simpleicons.org/canva/4E0911',
-      short: 'AI-assisted visual content, presentations, campaign assets, and rapid concepts.'
+      short: 'Visual communication'
     },
     'Figma': {
       icon: 'https://cdn.simpleicons.org/figma/4E0911',
-      short: 'AI interfaces, user journeys, workflow prototypes, and digital product concepts.'
+      short: 'UI & prototyping'
     }
   };
 
@@ -72,32 +72,36 @@
       .join('')
       .slice(0, 3)
       .toUpperCase();
+
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#FAF1EC"/><rect x="1" y="1" width="62" height="62" rx="15" fill="none" stroke="#4E0911" stroke-opacity=".24"/><text x="32" y="38" text-anchor="middle" fill="#4E0911" font-family="Arial,sans-serif" font-size="16" font-weight="700">${initials}</text></svg>`;
     return `data:image/svg+xml,${encodeURIComponent(svg)}`;
   };
 
-  root.dataset.toolsEnhanced = 'true';
-  root.setAttribute('role', 'list');
-  root.setAttribute('aria-label', 'Platforms used for AI consulting, automation, collaboration, analytics, and digital solutions');
+  const cards = [...root.querySelectorAll('.tool-card')];
+  if (!cards.length) return;
 
-  [...root.querySelectorAll('.tool-card')].forEach((card) => {
+  const buildTile = (card, isClone = false) => {
     const name = card.querySelector('strong')?.textContent?.trim() || 'Technology platform';
     const meta = toolMeta[name] || {};
-    const content = card.querySelector('div');
-    const mark = card.querySelector('.tool-mark');
 
-    card.setAttribute('role', 'listitem');
-    card.classList.add('tool-card--enhanced');
+    const tile = document.createElement('article');
+    tile.className = 'tools-ticker__item';
+    if (isClone) {
+      tile.setAttribute('aria-hidden', 'true');
+    } else {
+      tile.setAttribute('role', 'listitem');
+      tile.setAttribute('aria-label', `${name}: ${meta.short || 'Technology platform'}`);
+    }
 
     const visual = document.createElement('div');
-    visual.className = 'tool-card__visual';
+    visual.className = 'tools-ticker__visual';
 
     const image = document.createElement('img');
-    image.className = 'tool-card__logo';
+    image.className = 'tools-ticker__logo';
     image.src = meta.icon || fallbackIcon(name);
-    image.alt = `${name} logo`;
-    image.width = 48;
-    image.height = 48;
+    image.alt = isClone ? '' : `${name} logo`;
+    image.width = 44;
+    image.height = 44;
     image.loading = 'lazy';
     image.decoding = 'async';
     image.addEventListener('error', () => {
@@ -107,119 +111,236 @@
       }
     });
 
+    const copy = document.createElement('div');
+    copy.className = 'tools-ticker__copy';
+
+    const title = document.createElement('strong');
+    title.textContent = name;
+
+    const description = document.createElement('span');
+    description.textContent = meta.short || 'Technology platform';
+
     visual.appendChild(image);
-    mark?.replaceWith(visual);
+    copy.append(title, description);
+    tile.append(visual, copy);
+    return tile;
+  };
 
-    if (content) {
-      content.classList.add('tool-card__content');
-      const description = content.querySelector('span');
-      if (description && meta.short) description.textContent = meta.short;
-    }
-  });
+  root.dataset.toolsTickerReady = 'true';
+  root.className = 'tools-ticker reveal is-visible';
+  root.setAttribute('role', 'region');
+  root.setAttribute('aria-label', 'Platforms used. Continuous scrolling list. Animation pauses when hovered or focused.');
+  root.setAttribute('tabindex', '0');
 
-  const style = document.createElement('style');
-  style.id = 'tools-responsive-grid-styles';
-  style.textContent = `
-    .tools-section{overflow:visible!important;}
-    .tools-section .tools-intro{
-      max-width:780px;
-      margin-bottom:32px!important;
-      font-size:1rem;
-      line-height:1.7;
-    }
-    .tools-section .tools-grid{
-      display:grid!important;
-      grid-template-columns:repeat(4,minmax(0,1fr))!important;
-      gap:16px!important;
-      width:100%;
-      overflow:visible!important;
-      border:0!important;
-      border-radius:0!important;
-      background:transparent!important;
-      box-shadow:none!important;
-    }
-    .tools-section .tool-card--enhanced{
-      min-width:0;
-      min-height:190px;
-      display:flex!important;
-      flex-direction:column;
-      align-items:flex-start;
-      gap:18px;
-      padding:24px!important;
-      border:1px solid rgba(78,9,17,.12)!important;
-      border-radius:20px!important;
-      background:rgba(255,253,252,.92)!important;
-      box-shadow:0 12px 30px rgba(78,9,17,.055)!important;
-      transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease!important;
-    }
-    .tools-section .tool-card--enhanced:hover{
-      transform:translateY(-4px);
-      border-color:rgba(78,9,17,.34)!important;
-      box-shadow:0 18px 36px rgba(78,9,17,.09)!important;
-    }
-    .tool-card__visual{
-      width:62px;
-      height:62px;
-      display:grid;
-      place-items:center;
-      flex:0 0 auto;
-      border:1px solid rgba(78,9,17,.1);
-      border-radius:16px;
-      background:#FAF1EC;
-    }
-    .tool-card__logo{
-      display:block;
-      width:40px!important;
-      height:40px!important;
-      object-fit:contain!important;
-      filter:none!important;
-    }
-    .tool-card__content{
-      min-width:0;
-      width:100%;
-    }
-    .tool-card__content strong{
-      display:block;
-      margin-bottom:8px;
-      color:#2F2420!important;
-      font-size:1rem!important;
-      line-height:1.3!important;
-    }
-    .tool-card__content br{display:none;}
-    .tool-card__content span{
-      display:block;
-      margin:0!important;
-      color:#6F5C54!important;
-      font-size:.84rem!important;
-      line-height:1.55!important;
-    }
-    @media(max-width:1100px){
-      .tools-section .tools-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
-    }
-    @media(max-width:820px){
-      .tools-section .tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;}
-      .tools-section .tool-card--enhanced{min-height:170px;padding:20px!important;}
-    }
-    @media(max-width:560px){
-      .tools-section .tools-intro{font-size:.94rem;line-height:1.65;margin-bottom:24px!important;}
-      .tools-section .tools-grid{grid-template-columns:1fr!important;gap:12px!important;}
-      .tools-section .tool-card--enhanced{
-        min-height:auto;
-        display:grid!important;
-        grid-template-columns:56px minmax(0,1fr);
-        gap:16px;
-        align-items:start;
-        padding:18px!important;
-        border-radius:16px!important;
+  const viewport = document.createElement('div');
+  viewport.className = 'tools-ticker__viewport';
+
+  const track = document.createElement('div');
+  track.className = 'tools-ticker__track';
+  track.setAttribute('role', 'list');
+
+  cards.forEach((card) => track.appendChild(buildTile(card, false)));
+  cards.forEach((card) => track.appendChild(buildTile(card, true)));
+
+  viewport.appendChild(track);
+  root.replaceChildren(viewport);
+
+  if (!document.querySelector('#tools-ticker-styles')) {
+    const style = document.createElement('style');
+    style.id = 'tools-ticker-styles';
+    style.textContent = `
+      @keyframes toolsTickerScroll{
+        from{transform:translate3d(0,0,0)}
+        to{transform:translate3d(-50%,0,0)}
       }
-      .tool-card__visual{width:56px;height:56px;border-radius:14px;}
-      .tool-card__logo{width:36px!important;height:36px!important;}
-      .tool-card__content strong{font-size:.98rem!important;margin-bottom:5px;}
-      .tool-card__content span{font-size:.82rem!important;line-height:1.5!important;}
-    }
-    @media(prefers-reduced-motion:reduce){
-      .tools-section .tool-card--enhanced{transition:none!important;}
-    }
-  `;
-  document.head.appendChild(style);
+
+      .tools-section{
+        overflow:hidden!important;
+      }
+
+      .tools-section .tools-intro{
+        max-width:760px;
+        margin-bottom:30px!important;
+        line-height:1.7;
+      }
+
+      .tools-ticker{
+        position:relative;
+        width:100%;
+        overflow:hidden;
+        border:1px solid rgba(78,9,17,.13);
+        border-radius:24px;
+        background:rgba(255,253,252,.9);
+        box-shadow:0 14px 34px rgba(78,9,17,.065);
+        isolation:isolate;
+      }
+
+      .tools-ticker::before,
+      .tools-ticker::after{
+        content:"";
+        position:absolute;
+        top:0;
+        bottom:0;
+        width:clamp(42px,8vw,110px);
+        z-index:4;
+        pointer-events:none;
+      }
+
+      .tools-ticker::before{
+        left:0;
+        background:linear-gradient(90deg,#F3E4DA 0%,rgba(243,228,218,.92) 28%,rgba(243,228,218,0) 100%);
+      }
+
+      .tools-ticker::after{
+        right:0;
+        background:linear-gradient(270deg,#F3E4DA 0%,rgba(243,228,218,.92) 28%,rgba(243,228,218,0) 100%);
+      }
+
+      .tools-ticker__viewport{
+        width:100%;
+        overflow:hidden;
+      }
+
+      .tools-ticker__track{
+        display:flex;
+        align-items:stretch;
+        width:max-content;
+        will-change:transform;
+        animation:toolsTickerScroll 52s linear infinite;
+      }
+
+      .tools-ticker:hover .tools-ticker__track,
+      .tools-ticker:focus-within .tools-ticker__track{
+        animation-play-state:paused;
+      }
+
+      .tools-ticker__item{
+        flex:0 0 clamp(220px,20vw,270px);
+        min-height:112px;
+        display:grid;
+        grid-template-columns:56px minmax(0,1fr);
+        align-items:center;
+        gap:15px;
+        padding:22px 24px;
+        border-right:1px solid rgba(78,9,17,.085);
+        background:rgba(255,253,252,.82);
+      }
+
+      .tools-ticker__visual{
+        width:52px;
+        height:52px;
+        display:grid;
+        place-items:center;
+        border:1px solid rgba(78,9,17,.12);
+        border-radius:15px;
+        background:#FAF1EC;
+      }
+
+      .tools-ticker__logo{
+        display:block;
+        width:34px!important;
+        height:34px!important;
+        object-fit:contain!important;
+        filter:none!important;
+      }
+
+      .tools-ticker__copy{
+        min-width:0;
+      }
+
+      .tools-ticker__copy strong{
+        display:block;
+        margin-bottom:5px;
+        color:#2F2420!important;
+        font-size:.92rem;
+        line-height:1.25;
+      }
+
+      .tools-ticker__copy span{
+        display:block;
+        color:#7A665D!important;
+        font-size:.74rem;
+        line-height:1.45;
+      }
+
+      .tools-ticker:focus-visible{
+        outline:3px solid rgba(78,9,17,.24)!important;
+        outline-offset:5px;
+      }
+
+      @media(max-width:760px){
+        .tools-ticker{
+          border-radius:18px;
+        }
+
+        .tools-ticker__track{
+          animation-duration:42s;
+        }
+
+        .tools-ticker__item{
+          flex-basis:220px;
+          min-height:100px;
+          grid-template-columns:50px minmax(0,1fr);
+          gap:13px;
+          padding:18px 18px;
+        }
+
+        .tools-ticker__visual{
+          width:48px;
+          height:48px;
+          border-radius:13px;
+        }
+
+        .tools-ticker__logo{
+          width:31px!important;
+          height:31px!important;
+        }
+
+        .tools-ticker__copy strong{font-size:.86rem;}
+        .tools-ticker__copy span{font-size:.7rem;}
+      }
+
+      @media(max-width:480px){
+        .tools-section .tools-intro{
+          margin-bottom:22px!important;
+          font-size:.93rem;
+        }
+
+        .tools-ticker__item{
+          flex-basis:200px;
+          min-height:94px;
+          grid-template-columns:46px minmax(0,1fr);
+          padding:16px;
+        }
+
+        .tools-ticker__visual{
+          width:44px;
+          height:44px;
+        }
+
+        .tools-ticker__logo{
+          width:28px!important;
+          height:28px!important;
+        }
+      }
+
+      @media(prefers-reduced-motion:reduce){
+        .tools-ticker__viewport{
+          overflow-x:auto;
+          scrollbar-width:thin;
+        }
+
+        .tools-ticker__track{
+          animation:none;
+          transform:none!important;
+        }
+
+        .tools-ticker::before,
+        .tools-ticker::after{
+          display:none;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
 })();
