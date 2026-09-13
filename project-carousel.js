@@ -119,8 +119,6 @@ const normalize = (rows) => (Array.isArray(rows) ? rows : [])
     return {
       id: row.id || `portfolio-${index + 1}`,
       title: String(row.title).trim(),
-      description: String(row.description || "").trim(),
-      status: String(row.status || "").trim(),
       mediaType: imageUrl ? "image" : "video",
       mediaUrl: imageUrl || cloudinaryVideoUrl(originalUrl),
       posterUrl: String(row.posterLink || "").trim() || (imageUrl ? imageUrl : cloudinaryPosterUrl(originalUrl))
@@ -187,9 +185,7 @@ const buildActiveMedia = (item) => {
   host.appendChild(video);
   activeMedia = video;
 
-  if (!reduceMotion) {
-    video.play().catch(() => {});
-  }
+  if (!reduceMotion) video.play().catch(() => {});
 };
 
 const previewPosition = (index) => {
@@ -218,16 +214,6 @@ function goTo(index, announce = true) {
   buildActiveMedia(item);
   updatePreviewDeck();
 
-  const title = root.querySelector("[data-active-title]");
-  const description = root.querySelector("[data-active-description]");
-  const category = root.querySelector("[data-active-category]");
-  if (title) title.textContent = item.title;
-  if (description) description.textContent = item.description;
-  if (category) {
-    category.textContent = item.status || "AI Portfolio";
-    category.hidden = false;
-  }
-
   root.querySelectorAll("[data-portfolio-dot]").forEach((dot, dotIndex) => {
     const current = dotIndex === activeIndex;
     dot.classList.toggle("is-active", current);
@@ -246,7 +232,6 @@ const previous = () => goTo(activeIndex - 1);
 const previewMarkup = (item, index) => `
   <button class="portfolio-deck__preview" type="button" data-portfolio-preview data-index="${index}" aria-label="Show ${escapeHtml(item.title)}">
     ${item.posterUrl ? `<img src="${escapeHtml(item.posterUrl)}" alt="" loading="lazy">` : `<span class="portfolio-deck__preview-fallback" aria-hidden="true">AI</span>`}
-    <span class="portfolio-deck__preview-copy"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.status || "AI Portfolio")}</small></span>
   </button>`;
 
 const render = () => {
@@ -266,11 +251,6 @@ const render = () => {
       <div class="portfolio-deck__previews">${items.map(previewMarkup).join("")}</div>
       <article class="portfolio-deck__active">
         <div class="portfolio-deck__media" data-active-media></div>
-        <div class="portfolio-deck__identity">
-          <span class="portfolio-deck__category" data-active-category></span>
-          <h3 data-active-title></h3>
-          <p data-active-description></p>
-        </div>
         <button class="portfolio-deck__control portfolio-deck__control--prev" type="button" data-portfolio-prev aria-label="Previous portfolio item">←</button>
         <button class="portfolio-deck__control portfolio-deck__control--next" type="button" data-portfolio-next aria-label="Next portfolio item">→</button>
         <div class="portfolio-deck__nav" aria-label="Choose portfolio item">
@@ -307,14 +287,13 @@ const installStyles = () => {
   style.id = "portfolio-deck-styles";
   style.textContent = `
     .portfolio-deck{position:relative;width:100%;outline:none}.portfolio-deck__stage{position:relative;min-height:620px;display:grid;place-items:center;padding:44px 0}.portfolio-deck__active{position:relative;z-index:5;width:min(100%,1040px);aspect-ratio:16/9;border:1px solid rgba(78,9,17,.18);border-radius:28px;background:#260707;box-shadow:0 32px 80px rgba(78,9,17,.22);overflow:hidden;transition:width .3s ease,aspect-ratio .3s ease}.portfolio-deck__active[data-orientation="portrait"]{width:min(72vw,430px)}.portfolio-deck__active[data-orientation="square"]{width:min(78vw,650px)}
-    .portfolio-deck__media,.portfolio-deck__media video,.portfolio-deck__media img{position:absolute;inset:0;width:100%;height:100%}.portfolio-deck__media video,.portfolio-deck__media img{display:block;object-fit:contain;background:#260707}.portfolio-deck__identity{position:absolute;left:20px;right:20px;top:18px;z-index:8;display:flex;align-items:center;gap:10px;pointer-events:none}.portfolio-deck__identity h3{margin:0;max-width:70%;padding:8px 12px;border-radius:999px;background:rgba(38,7,7,.72);color:#fff;font-size:clamp(.84rem,1.3vw,1rem);line-height:1.2;letter-spacing:-.01em;backdrop-filter:blur(10px)}.portfolio-deck__identity p{position:absolute;left:0;top:48px;max-width:min(620px,80%);margin:0;padding:12px 14px;border-radius:14px;background:rgba(38,7,7,.82);color:#FAF1EC;font-size:.86rem;line-height:1.5;opacity:0;transform:translateY(-4px);transition:opacity .2s ease,transform .2s ease}.portfolio-deck__category{padding:7px 10px;border-radius:999px;background:#4E0911;color:#FAF1EC;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}.portfolio-deck__active:hover .portfolio-deck__identity p,.portfolio-deck:focus-within .portfolio-deck__identity p{opacity:1;transform:none}
-    .portfolio-deck__control{position:absolute;top:50%;z-index:10;display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(255,255,255,.34);border-radius:50%;background:rgba(38,7,7,.62);color:#fff;font-size:1.1rem;cursor:pointer;backdrop-filter:blur(10px);transform:translateY(-50%)}.portfolio-deck__control--prev{left:16px}.portfolio-deck__control--next{right:16px}.portfolio-deck__control:hover,.portfolio-deck__control:focus-visible{background:#4E0911;outline:2px solid #fff;outline-offset:2px}
+    .portfolio-deck__media,.portfolio-deck__media video,.portfolio-deck__media img{position:absolute;inset:0;width:100%;height:100%}.portfolio-deck__media video,.portfolio-deck__media img{display:block;object-fit:contain;background:#260707}.portfolio-deck__control{position:absolute;top:50%;z-index:10;display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(255,255,255,.34);border-radius:50%;background:rgba(38,7,7,.62);color:#fff;font-size:1.1rem;cursor:pointer;backdrop-filter:blur(10px);transform:translateY(-50%)}.portfolio-deck__control--prev{left:16px}.portfolio-deck__control--next{right:16px}.portfolio-deck__control:hover,.portfolio-deck__control:focus-visible{background:#4E0911;outline:2px solid #fff;outline-offset:2px}
     .portfolio-deck__nav{position:absolute;left:50%;bottom:16px;z-index:10;display:flex;align-items:center;gap:12px;padding:9px 13px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(38,7,7,.64);color:#fff;font-size:.72rem;font-weight:800;backdrop-filter:blur(10px);transform:translateX(-50%)}.portfolio-deck__nav>div{display:flex;gap:7px}.portfolio-deck__dot{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:rgba(255,255,255,.45);cursor:pointer}.portfolio-deck__dot.is-active{width:24px;background:#fff}
-    .portfolio-deck__previews{position:absolute;inset:0;z-index:1;pointer-events:none}.portfolio-deck__preview{position:absolute;top:50%;width:min(28vw,300px);aspect-ratio:16/10;padding:0;overflow:hidden;border:1px solid rgba(78,9,17,.18);border-radius:24px;background:#4E0911;box-shadow:0 24px 60px rgba(78,9,17,.15);opacity:.38;filter:saturate(.65);cursor:pointer;pointer-events:auto;transform:translateY(-50%) scale(.9);transition:opacity .25s ease,transform .25s ease,filter .25s ease}.portfolio-deck__preview[data-position="previous"]{left:0;transform:translate(-18%,-50%) rotate(-2deg) scale(.9)}.portfolio-deck__preview[data-position="next"]{right:0;transform:translate(18%,-50%) rotate(2deg) scale(.9)}.portfolio-deck__preview:hover,.portfolio-deck__preview:focus-visible{opacity:.72;filter:saturate(.9);outline:3px solid rgba(78,9,17,.34);outline-offset:4px}.portfolio-deck__preview img{width:100%;height:100%;object-fit:cover}.portfolio-deck__preview-copy{position:absolute;inset:auto 0 0;display:grid;gap:2px;padding:14px;background:linear-gradient(transparent,rgba(38,7,7,.92));color:#fff;text-align:left}.portfolio-deck__preview-copy strong{font-size:.78rem;line-height:1.25}.portfolio-deck__preview-copy small{font-size:.66rem;opacity:.78}.portfolio-deck__preview-fallback{display:grid;place-items:center;width:100%;height:100%;color:#FAF1EC;font-weight:800;font-size:2rem}
+    .portfolio-deck__previews{position:absolute;inset:0;z-index:1;pointer-events:none}.portfolio-deck__preview{position:absolute;top:50%;width:min(28vw,300px);aspect-ratio:16/10;padding:0;overflow:hidden;border:1px solid rgba(78,9,17,.18);border-radius:24px;background:#4E0911;box-shadow:0 24px 60px rgba(78,9,17,.15);opacity:.38;filter:saturate(.65);cursor:pointer;pointer-events:auto;transform:translateY(-50%) scale(.9);transition:opacity .25s ease,transform .25s ease,filter .25s ease}.portfolio-deck__preview[data-position="previous"]{left:0;transform:translate(-18%,-50%) rotate(-2deg) scale(.9)}.portfolio-deck__preview[data-position="next"]{right:0;transform:translate(18%,-50%) rotate(2deg) scale(.9)}.portfolio-deck__preview:hover,.portfolio-deck__preview:focus-visible{opacity:.72;filter:saturate(.9);outline:3px solid rgba(78,9,17,.34);outline-offset:4px}.portfolio-deck__preview img{width:100%;height:100%;object-fit:cover}.portfolio-deck__preview-fallback{display:grid;place-items:center;width:100%;height:100%;color:#FAF1EC;font-weight:800;font-size:2rem}
     .portfolio-deck__error,.portfolio-deck__empty{display:grid;place-content:center;gap:8px;height:100%;padding:32px;text-align:center;color:#FAF1EC}.portfolio-deck__status{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     @media(max-width:900px){.portfolio-deck__stage{min-height:560px}.portfolio-deck__preview{width:240px;opacity:.24}.portfolio-deck__active{width:min(90%,880px)}}
-    @media(max-width:640px){.portfolio-deck__stage{min-height:520px;padding:28px 0 96px}.portfolio-deck__active{width:94%;border-radius:20px}.portfolio-deck__active[data-orientation="portrait"]{width:min(90vw,390px)}.portfolio-deck__preview{display:none}.portfolio-deck__control{top:auto;bottom:-66px;transform:none;width:44px;height:44px}.portfolio-deck__control--prev{left:18px}.portfolio-deck__control--next{right:18px}.portfolio-deck__nav{bottom:-64px}.portfolio-deck__identity{top:12px;left:12px;right:12px;align-items:flex-start;flex-direction:column}.portfolio-deck__identity h3{max-width:88%;font-size:.78rem}.portfolio-deck__identity p{position:static;max-width:92%;font-size:.78rem;opacity:1;transform:none;padding:8px 10px;background:rgba(38,7,7,.72)}.portfolio-deck__category{font-size:.62rem}.portfolio-deck__nav>span{display:none}}
-    @media(prefers-reduced-motion:reduce){.portfolio-deck__active,.portfolio-deck__preview,.portfolio-deck__identity p{transition:none}}
+    @media(max-width:640px){.portfolio-deck__stage{min-height:520px;padding:28px 0 96px}.portfolio-deck__active{width:94%;border-radius:20px}.portfolio-deck__active[data-orientation="portrait"]{width:min(90vw,390px)}.portfolio-deck__preview{display:none}.portfolio-deck__control{top:auto;bottom:-66px;transform:none;width:44px;height:44px}.portfolio-deck__control--prev{left:18px}.portfolio-deck__control--next{right:18px}.portfolio-deck__nav{bottom:-64px}.portfolio-deck__nav>span{display:none}}
+    @media(prefers-reduced-motion:reduce){.portfolio-deck__active,.portfolio-deck__preview{transition:none}}
   `;
   document.head.appendChild(style);
 };
