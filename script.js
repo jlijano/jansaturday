@@ -1,172 +1,3 @@
-const experienceData = [
-  {
-    marker: "O",
-    role: "Service Delivery Manager / Service Project Manager",
-    company: "Oligarchy",
-    meta: "Nov 2024 – Present · Part-time · United States · Remote",
-    summary: "Lead client-facing service delivery and L&D programmes, aligning internal teams, budgets, training operations, and business goals.",
-    achievements: [
-      "Improved training programme effectiveness by 15% and increased client engagement by 20%.",
-      "Reduced training development time by 30% and optimised training budgets by 10%.",
-      "Led the L&D team, resolved delivery issues, and improved learner experience through continuous process improvement."
-    ],
-    skills: ["Service Delivery", "L&D Strategy", "Training Needs Analysis", "Client Relationships", "Budget Management"]
-  },
-  {
-    marker: "DC",
-    role: "Information Technology Project Manager",
-    company: "Dexterton Corporation",
-    meta: "Jan 2025 – Jun 2026 · Full-time",
-    summary: "Managed complex technology programmes from initiation through completion across cloud, cybersecurity, virtualisation, AI, and IoT initiatives.",
-    achievements: [
-      "Directed cross-functional teams and resolved delivery risks to keep projects aligned with scope, budget, quality, and deadlines.",
-      "Created detailed project plans, budgets, resource strategies, and leadership performance updates.",
-      "Oversaw system design and implementation for strategic technology initiatives."
-    ],
-    skills: ["IT Project Management", "Cloud Computing", "Cybersecurity", "AI & IoT", "Stakeholder Reporting"]
-  },
-  {
-    marker: "EA",
-    role: "IT Consultant",
-    company: "Elite Auto Estimates LLC",
-    meta: "Apr 2025 – May 2026 · Part-time",
-    summary: "Led Microsoft 365 deployment and digital workflow improvements supporting appraisal operations, claims documentation, scheduling, and communication.",
-    achievements: [
-      "Implemented email migration, Teams, SharePoint, OneDrive, user access, and security controls.",
-      "Created project plans, training materials, timelines, and resource strategies for technology upgrades.",
-      "Improved cloud storage, backup, device management, cybersecurity, and secure remote access."
-    ],
-    skills: ["Microsoft 365", "SharePoint", "OneDrive", "Teams", "Secure Remote Access"]
-  },
-  {
-    marker: "DD",
-    role: "Service Delivery Manager / Service Project Manager",
-    company: "Destroy Drive",
-    meta: "Apr 2024 – Apr 2025 · United States · Hybrid",
-    summary: "Managed client relationships and IT asset disposition services, coordinating internal teams, compliance, workflow quality, and operational efficiency.",
-    achievements: [
-      "Improved service delivery speed and customer satisfaction by 10%.",
-      "Raised project delivery efficiency and team productivity by 20%.",
-      "Reduced operational costs by 35% through process optimisation."
-    ],
-    skills: ["ITAD", "Service Delivery", "Client Management", "Process Optimisation", "Compliance"]
-  },
-  {
-    marker: "AIT",
-    role: "Senior Information Technology Project Manager",
-    company: "Adaptive ITC",
-    meta: "Sep 2020 – May 2024 · Part-time · Remote",
-    summary: "Managed security, backup, user support systems, strategic computing resources, and day-to-day technology operations.",
-    achievements: [
-      "Maintained system integrity through security, backup, and support controls.",
-      "Developed technology strategies focused on data governance and security.",
-      "Worked with department heads to resolve issues, report progress, and meet operational deadlines."
-    ],
-    skills: ["IT Strategy", "Security", "Backup", "Operations", "Stakeholder Management"]
-  },
-  {
-    marker: "CGS",
-    role: "IT Asset Manager",
-    company: "Carelon Global Solutions",
-    meta: "Jul 2023 – Apr 2024 · Full-time · Philippines · Hybrid",
-    summary: "Managed enterprise cloud and software licence lifecycle, forecasting, budgeting, compliance, audit readiness, and cost control.",
-    achievements: [
-      "Improved asset tracking, governance, reporting discipline, and operational visibility.",
-      "Conducted audits and compliance assessments across IT assets and software licences.",
-      "Collaborated with cross-functional teams to optimise procurement and asset processes."
-    ],
-    skills: ["ITAM", "Software Licensing", "Audit", "Forecasting", "Cost Control"]
-  },
-  {
-    marker: "C&C",
-    role: "Global IT Asset Management / IT Desktop Support Engineer",
-    company: "Crawford & Company",
-    meta: "Apr 2018 – Jul 2023 · Full-time · Remote / Hybrid",
-    summary: "Progressed from desktop support into global IT asset management, combining technical operations, lifecycle governance, audits, policy, and cost optimisation.",
-    achievements: [
-      "Improved asset tracking accuracy by 15% and operational efficiency by 25%.",
-      "Reduced IT asset costs by 15% through data-driven lifecycle decisions.",
-      "Reduced system downtime by 20% through proactive technical support and maintenance."
-    ],
-    skills: ["Global ITAM", "Desktop Support", "Audit", "Policy", "Technical Operations"]
-  },
-  {
-    marker: "VOAJ",
-    role: "IT Business Consultant",
-    company: "VOAJ Enterprise",
-    meta: "Apr 2017 – May 2021 · Part-time · Remote",
-    summary: "Advised organisations on process improvement, system optimisation, technology selection, implementation, and user adoption.",
-    achievements: ["Improved operational efficiency by 20% through business process optimisation and system recommendations."],
-    skills: ["Business Consulting", "Process Improvement", "Systems Selection", "Training", "Technology Adoption"],
-    hidden: true
-  },
-  {
-    marker: "PBS",
-    role: "IT Manager",
-    company: "Pacific Business Services",
-    meta: "Apr 2017 – Apr 2018 · Philippines",
-    summary: "Led the IT department, systems, policies, procedures, team performance, and company-wide technology operations.",
-    achievements: ["Increased department efficiency by 15%, team productivity by 25%, and operational consistency by 20%."],
-    skills: ["IT Management", "Team Leadership", "Policies", "Operations", "Performance Management"],
-    hidden: true
-  },
-  {
-    marker: "AL",
-    role: "IT Manager",
-    company: "AccentLine",
-    meta: "Dec 2015 – Apr 2017 · Iloilo City",
-    summary: "Managed IT staff, server setup, infrastructure reliability, recruitment, training, and team development.",
-    achievements: ["Maintained 98.3% server uptime and improved team performance by 25%."],
-    skills: ["Server Administration", "IT Leadership", "Recruitment", "Training", "Infrastructure"],
-    hidden: true
-  },
-  {
-    marker: "MS",
-    role: "Software Quality Assurance Officer",
-    company: "Microsoft",
-    meta: "Mar 2013 – Oct 2014 · Makati",
-    summary: "Designed test strategies, validation procedures, test plans, and process improvements for software quality and release assurance.",
-    achievements: ["Improved testing efficiency by 25%, reduced post-release defects by 30%, and shortened testing time by 15%."],
-    skills: ["Software QA", "Test Planning", "Validation", "Process Improvement", "Automation"],
-    hidden: true
-  },
-  {
-    marker: "TC",
-    role: "Technical Services Specialist",
-    company: "Transcom",
-    meta: "Aug 2012 – Mar 2013 · Iloilo City",
-    summary: "Provided customer technical support across hardware, software, networks, upgrades, migrations, and user training.",
-    achievements: ["Supported customers through phone, email, and in-person channels while collaborating on system upgrades and migrations."],
-    skills: ["Technical Support", "Networking", "Customer Service", "Training", "Troubleshooting"],
-    hidden: true
-  }
-];
-
-const experienceRoot = document.querySelector("[data-experience]");
-if (experienceRoot) {
-  experienceRoot.innerHTML = experienceData.map((item) => `
-    <article class="experience-item reveal${item.hidden ? " is-hidden" : ""}" data-earlier-experience="${item.hidden ? "true" : "false"}">
-      <div class="experience-marker" aria-hidden="true">${item.marker}</div>
-      <div class="experience-card">
-        <div class="experience-head">
-          <div><h3>${item.role}</h3><p class="experience-company">${item.company}</p></div>
-          <div class="experience-meta">${item.meta}</div>
-        </div>
-        <p class="experience-summary">${item.summary}</p>
-        <ul class="experience-achievements">${item.achievements.map((achievement) => `<li>${achievement}</li>`).join("")}</ul>
-        <div class="experience-skills">${item.skills.map((skill) => `<span>${skill}</span>`).join("")}</div>
-      </div>
-    </article>`).join("");
-}
-
-const experienceToggle = document.querySelector("[data-experience-toggle]");
-experienceToggle?.addEventListener("click", () => {
-  const expanded = experienceToggle.getAttribute("aria-expanded") === "true";
-  document.querySelectorAll('[data-earlier-experience="true"]').forEach((item) => item.classList.toggle("is-hidden", expanded));
-  experienceToggle.setAttribute("aria-expanded", String(!expanded));
-  experienceToggle.textContent = expanded ? "Show Earlier Experience" : "Hide Earlier Experience";
-});
-
 const header = document.querySelector("[data-header]");
 const menuToggle = document.querySelector(".menu-toggle");
 const mobileMenu = document.querySelector("#mobile-menu");
@@ -184,9 +15,11 @@ menuToggle?.addEventListener("click", () => setMenu(menuToggle.getAttribute("ari
 mobileMenu?.addEventListener("click", (event) => {
   if (event.target instanceof HTMLAnchorElement) setMenu(false);
 });
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") setMenu(false);
 });
+
 document.addEventListener("click", (event) => {
   if (!mobileMenu || mobileMenu.hidden || !menuToggle) return;
   if (event.target instanceof Node && !mobileMenu.contains(event.target) && !menuToggle.contains(event.target)) setMenu(false);
@@ -195,6 +28,7 @@ document.addEventListener("click", (event) => {
 function updateHeader() {
   header?.classList.toggle("scrolled", window.scrollY > 20);
 }
+
 updateHeader();
 window.addEventListener("scroll", updateHeader, { passive: true });
 
@@ -210,7 +44,8 @@ if ("IntersectionObserver" in window) {
 }
 
 const revealElements = document.querySelectorAll(".reveal");
-if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if ("IntersectionObserver" in window && !reduceMotion) {
   const revealObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
@@ -224,35 +59,3 @@ if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-mot
 }
 
 document.querySelector("[data-year]")?.replaceChildren(String(new Date().getFullYear()));
-
-const form = document.querySelector("[data-contact-form]");
-const status = form?.querySelector(".form-status");
-
-function validateField(field) {
-  const error = document.querySelector(`#${field.id}-error`);
-  let message = "";
-  if (!field.value.trim()) message = `${field.labels?.[0]?.textContent || "This field"} is required.`;
-  if (field.type === "email" && field.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) message = "Enter a valid email address.";
-  field.setAttribute("aria-invalid", String(Boolean(message)));
-  field.setAttribute("aria-describedby", `${field.id}-error`);
-  if (error) error.textContent = message;
-  return !message;
-}
-
-form?.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const fields = [...form.querySelectorAll("input, textarea")];
-  const valid = fields.map(validateField).every(Boolean);
-  if (!valid) {
-    fields.find((field) => field.getAttribute("aria-invalid") === "true")?.focus();
-    if (status) status.textContent = "Please correct the highlighted fields.";
-    return;
-  }
-  if (status) status.textContent = "Thanks! This form is ready to connect to your preferred form service.";
-  form.reset();
-  fields.forEach((field) => field.removeAttribute("aria-invalid"));
-});
-
-form?.addEventListener("input", (event) => {
-  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) validateField(event.target);
-});
