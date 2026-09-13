@@ -201,19 +201,13 @@ function sendLeadNotification_(payload, rowNumber) {
 }
 
 function sendClientReceipt_(payload) {
-  const bookingUrl = buildCalendlyUrl_(payload.name, payload.email);
-  const subject = 'We received your AI consultation request';
+  const subject = 'Thanks for your AI consultation request';
   const plainBody = [
     'Hi ' + payload.name + ',',
     '',
     'Thanks for reaching out. Your AI consultation request has been received.',
     '',
-    'You can choose an available consultation time here:',
-    bookingUrl,
-    '',
-    'Once you select a time, Calendly will send the final booking confirmation and calendar invitation with the meeting details.',
-    '',
-    'Topic: ' + payload.aiInterest,
+    'You can now continue with scheduling in Calendly. Once your time is booked, Calendly will send the calendar invitation and meeting details.',
     '',
     'Best,',
     'Jan Lijano',
@@ -223,9 +217,7 @@ function sendClientReceipt_(payload) {
   const htmlBody = [
     '<p>Hi ' + escapeHtml_(payload.name) + ',</p>',
     '<p>Thanks for reaching out. Your AI consultation request has been received.</p>',
-    '<p><a href="' + escapeHtml_(bookingUrl) + '" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#4E0911;color:#ffffff;text-decoration:none;font-weight:700;">Choose Your Consultation Time</a></p>',
-    '<p>Once you select a time, Calendly will send the final booking confirmation and calendar invitation with the meeting details.</p>',
-    '<p><strong>Topic:</strong> ' + escapeHtml_(payload.aiInterest) + '</p>',
+    '<p>You can now continue with scheduling in Calendly. Once your time is booked, Calendly will send the calendar invitation and meeting details.</p>',
     '<p>Best,<br>Jan Lijano<br>AI Consultant</p>'
   ].join('');
 
