@@ -59,3 +59,8 @@ if ("IntersectionObserver" in window && !reduceMotion) {
 }
 
 document.querySelector("[data-year]")?.replaceChildren(String(new Date().getFullYear()));
+
+const consultationModule = document.createElement("script");
+consultationModule.src = "consultation-form.js";
+consultationModule.defer = true;
+document.body.appendChild(consultationModule);
