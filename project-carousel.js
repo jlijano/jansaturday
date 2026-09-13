@@ -1,5 +1,117 @@
 "use strict";
 
+const INTRO_VIDEO_URL = "https://player.cloudinary.com/embed/?cloud_name=brfm6p40&public_id=lv_0_20260912150315&autoplay=true&muted=true";
+const INTRO_DESCRIPTION = "AI Consultant helping businesses adopt practical AI, automation, and intelligent digital solutions to work smarter and grow efficiently.";
+
+const setupProfileIntro = () => {
+  const heroGrid = document.querySelector(".hero-grid");
+  const heroDescription = document.querySelector(".hero-description");
+
+  if (heroDescription) {
+    heroDescription.textContent = INTRO_DESCRIPTION;
+  }
+
+  if (!heroGrid || heroGrid.querySelector(".hero-intro-video")) return;
+
+  const media = document.createElement("div");
+  media.className = "hero-intro-video reveal";
+  media.setAttribute("aria-label", "Who am I profile introduction video");
+  media.innerHTML = `
+    <div class="hero-intro-video__frame">
+      <iframe
+        src="${INTRO_VIDEO_URL}"
+        title="Who am I? — Jan Christian Lijano, AI Consultant"
+        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+        allowfullscreen
+        frameborder="0"
+        loading="eager"></iframe>
+      <div class="hero-intro-video__label" aria-hidden="true">Who am I?</div>
+    </div>`;
+
+  heroGrid.appendChild(media);
+
+  if (!document.querySelector("#hero-intro-video-styles")) {
+    const style = document.createElement("style");
+    style.id = "hero-intro-video-styles";
+    style.textContent = `
+      .hero .hero-grid{
+        grid-template-columns:minmax(0,.92fr) minmax(440px,1.08fr) !important;
+        max-width:1180px;
+        margin-inline:auto;
+        gap:clamp(42px,6vw,88px);
+        align-items:center;
+      }
+      .hero .hero-copy{max-width:620px;}
+      .hero .hero-description{max-width:560px;}
+      .hero-intro-video{
+        width:100%;
+        max-width:620px;
+        justify-self:end;
+      }
+      .hero-intro-video__frame{
+        position:relative;
+        width:100%;
+        aspect-ratio:16/9;
+        overflow:hidden;
+        border:1px solid rgba(78,9,17,.2);
+        border-radius:26px;
+        background:#260707;
+        box-shadow:0 28px 70px rgba(78,9,17,.16);
+      }
+      .hero-intro-video__frame::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        pointer-events:none;
+        border-radius:inherit;
+        box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+      }
+      .hero-intro-video iframe{
+        display:block;
+        width:100%;
+        height:100%;
+        border:0;
+        background:#260707;
+      }
+      .hero-intro-video__label{
+        position:absolute;
+        left:18px;
+        bottom:18px;
+        z-index:3;
+        padding:8px 12px;
+        border:1px solid rgba(255,255,255,.2);
+        border-radius:999px;
+        background:rgba(78,9,17,.8);
+        color:#FAF1EC;
+        font-size:.76rem;
+        font-weight:800;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        backdrop-filter:blur(10px);
+        pointer-events:none;
+      }
+      @media(max-width:1024px){
+        .hero .hero-grid{
+          grid-template-columns:1fr !important;
+          max-width:820px;
+          gap:44px;
+        }
+        .hero-intro-video{
+          max-width:760px;
+          justify-self:stretch;
+        }
+      }
+      @media(max-width:640px){
+        .hero-intro-video__frame{border-radius:18px;}
+        .hero-intro-video__label{left:14px;bottom:14px;font-size:.68rem;}
+      }
+    `;
+    document.head.appendChild(style);
+  }
+};
+
+setupProfileIntro();
+
 const projectCarousel = document.querySelector("[data-project-carousel]");
 const projectsSectionTitle = document.querySelector("#projects-title");
 const DATA_URL = "portfolio-videos.json";
