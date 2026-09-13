@@ -94,9 +94,9 @@ if (footer) {
     <div class="footer-reference__inner">
       <div class="footer-reference__top">
         <h2 class="footer-reference__headline">Let’s build the future<br>of AI together</h2>
+        <div class="footer-reference__logo" data-footer-logo aria-label="Jan Lijano AI Consulting"></div>
         <a class="footer-reference__cta" href="#contact">Get Started</a>
       </div>
-      <div class="footer-reference__logo" data-footer-logo aria-label="Jan Lijano AI Consulting"></div>
       <div class="footer-reference__bottom">
         <div class="footer-reference__brand">
           <strong>JAN LIJANO</strong>
