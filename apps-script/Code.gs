@@ -1,10 +1,14 @@
 const CONFIG = Object.freeze({
   sheetName: 'Consultation Leads',
   notificationEmail: 'j.saturday.ai@gmail.com',
+  calendlyUrl: 'https://calendly.com/j-saturday-ai',
   allowedParentOrigin: 'https://jansaturday-1.onrender.com',
   statuses: Object.freeze({
-    lead: 'Awaiting Scheduling',
-    booking: 'Not Booked'
+    lead: 'Awaiting Review',
+    approvalAction: 'Approved - Send Scheduling Link',
+    linkSent: 'Scheduling Link Sent',
+    booking: 'Not Booked',
+    bookingLinkSent: 'Link Sent'
   }),
   allowedInterests: Object.freeze([
     'AI Strategy & Opportunity Mapping',
@@ -33,7 +37,6 @@ function doPost(e) {
     const payload = normalizePayload_(e && e.parameter ? e.parameter : {});
     validatePayload_(payload);
 
-    // Silent-success honeypot: bots that fill hidden fields are not written to the sheet.
     if (payload.faxNumber) {
       return responseHtml_({ ok: true, ignored: true, requestToken: payload.requestToken });
     }
@@ -94,6 +97,73 @@ function doGet() {
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true, service: 'AI Consultation Lead Intake' }))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Run this ONCE from the Apps Script editor after pasting/deploying this version.
+ * It creates the authorized spreadsheet edit trigger used to email approved leads.
+ */
+function setupApprovalTrigger() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  if (!spreadsheet) throw new Error('Open this script from the consultation Google Sheet.');
+
+  ScriptApp.getProjectTriggers()
+    .filter(function (trigger) {
+      return trigger.getHandlerFunction() === 'handleLeadStatusEdit';
+    })
+    .forEach(function (trigger) {
+      ScriptApp.deleteTrigger(trigger);
+    });
+
+  ScriptApp.newTrigger('handleLeadStatusEdit')
+    .forSpreadsheet(spreadsheet)
+    .onEdit()
+    .create();
+
+  return 'Approval trigger installed.';
+}
+
+/**
+ * Installable on-edit trigger.
+ * When Status (column H) becomes "Approved - Send Scheduling Link",
+ * the client receives the scheduling email and the row is updated.
+ */
+function handleLeadStatusEdit(e) {
+  if (!e || !e.range) return;
+
+  const range = e.range;
+  const sheet = range.getSheet();
+  if (sheet.getName() !== CONFIG.sheetName) return;
+  if (range.getRow() <= 1 || range.getColumn() !== 8) return;
+
+  const newValue = String(e.value || '').trim();
+  if (newValue !== CONFIG.statuses.approvalAction) return;
+
+  const row = range.getRow();
+  const values = sheet.getRange(row, 1, 1, 11).getDisplayValues()[0];
+  const lead = {
+    name: cleanText_(values[1], 120),
+    email: cleanText_(values[2], 254).toLowerCase(),
+    company: cleanText_(values[3], 160),
+    aiInterest: cleanText_(values[5], 120),
+    message: cleanText_(values[6], 3000)
+  };
+
+  if (!lead.name || !isValidEmail_(lead.email)) {
+    appendNote_(sheet, row, 'Scheduling email not sent: lead name/email is missing or invalid.');
+    return;
+  }
+
+  try {
+    sendSchedulingEmail_(lead);
+    sheet.getRange(row, 8).setValue(CONFIG.statuses.linkSent);
+    sheet.getRange(row, 9).setValue(CONFIG.statuses.bookingLinkSent);
+    appendNote_(sheet, row, 'Scheduling link emailed to client.');
+  } catch (error) {
+    console.error(error);
+    appendNote_(sheet, row, 'Scheduling email failed: ' + String(error && error.message ? error.message : error));
+    throw error;
+  }
 }
 
 function normalizePayload_(raw) {
@@ -165,7 +235,10 @@ function sendLeadNotification_(payload, rowNumber) {
     payload.message,
     '',
     'Status: ' + CONFIG.statuses.lead,
-    'Sheet row: ' + rowNumber
+    'Sheet row: ' + rowNumber,
+    '',
+    'To approve this request and send the client a scheduling link, change the Status cell in column H to:',
+    CONFIG.statuses.approvalAction
   ].join('\n');
 
   const htmlBody = [
@@ -177,7 +250,8 @@ function sendLeadNotification_(payload, rowNumber) {
     '<strong>AI Interest:</strong> ' + escapeHtml_(payload.aiInterest) + '</p>',
     '<p><strong>Message:</strong><br>' + escapeHtml_(payload.message).replace(/\n/g, '<br>') + '</p>',
     '<p><strong>Status:</strong> ' + escapeHtml_(CONFIG.statuses.lead) + '<br>',
-    '<strong>Sheet row:</strong> ' + rowNumber + '</p>'
+    '<strong>Sheet row:</strong> ' + rowNumber + '</p>',
+    '<p>To approve this request and email the client a scheduling link, change the row\'s <strong>Status</strong> to <strong>' + escapeHtml_(CONFIG.statuses.approvalAction) + '</strong>.</p>'
   ].join('');
 
   MailApp.sendEmail({
@@ -190,11 +264,64 @@ function sendLeadNotification_(payload, rowNumber) {
   });
 }
 
-/**
- * Apps Script HTML Service may render the returned page inside an additional
- * Google-controlled frame. postMessage to window.top reaches the portfolio page
- * even when that extra frame is present.
- */
+function sendSchedulingEmail_(lead) {
+  const bookingUrl = buildCalendlyUrl_(lead.name, lead.email);
+  const subject = 'Your AI Consultation Request Is Confirmed — Choose Your Time';
+  const companyLine = lead.company ? ' for ' + lead.company : '';
+
+  const plainBody = [
+    'Hi ' + lead.name + ',',
+    '',
+    'Thanks for reaching out. I have received and reviewed your AI consultation request' + companyLine + '.',
+    '',
+    'Your request is confirmed and ready for scheduling. Please choose an available consultation time here:',
+    bookingUrl,
+    '',
+    'Once you select a time, Calendly will send the final booking confirmation and calendar invitation with the meeting details.',
+    '',
+    'Topic: ' + (lead.aiInterest || 'AI Consultation'),
+    '',
+    'Best,',
+    'Jan Lijano',
+    'AI Consultant'
+  ].join('\n');
+
+  const htmlBody = [
+    '<p>Hi ' + escapeHtml_(lead.name) + ',</p>',
+    '<p>Thanks for reaching out. I have received and reviewed your AI consultation request' + escapeHtml_(companyLine) + '.</p>',
+    '<p><strong>Your request is confirmed and ready for scheduling.</strong></p>',
+    '<p><a href="' + escapeHtml_(bookingUrl) + '" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#4E0911;color:#ffffff;text-decoration:none;font-weight:700;">Choose Your Consultation Time</a></p>',
+    '<p>Once you select a time, Calendly will send the final booking confirmation and calendar invitation with the meeting details.</p>',
+    '<p><strong>Topic:</strong> ' + escapeHtml_(lead.aiInterest || 'AI Consultation') + '</p>',
+    '<p>Best,<br>Jan Lijano<br>AI Consultant</p>'
+  ].join('');
+
+  MailApp.sendEmail({
+    to: lead.email,
+    subject: subject,
+    body: plainBody,
+    htmlBody: htmlBody,
+    replyTo: CONFIG.notificationEmail,
+    name: 'Jan Lijano'
+  });
+}
+
+function buildCalendlyUrl_(name, email) {
+  const params = [];
+  if (name) params.push('name=' + encodeURIComponent(name));
+  if (email) params.push('email=' + encodeURIComponent(email));
+  if (!params.length) return CONFIG.calendlyUrl;
+  return CONFIG.calendlyUrl + (CONFIG.calendlyUrl.indexOf('?') === -1 ? '?' : '&') + params.join('&');
+}
+
+function appendNote_(sheet, row, note) {
+  const cell = sheet.getRange(row, 11);
+  const existing = String(cell.getDisplayValue() || '').trim();
+  const stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm');
+  const line = stamp + ' — ' + note;
+  cell.setValue(existing ? existing + '\n' + line : line);
+}
+
 function responseHtml_(result) {
   const safeJson = JSON.stringify(result).replace(/</g, '\\u003c');
   const safeOrigin = JSON.stringify(CONFIG.allowedParentOrigin);
