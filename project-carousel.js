@@ -119,6 +119,7 @@ const normalize = (rows) => (Array.isArray(rows) ? rows : [])
     return {
       id: row.id || `portfolio-${index + 1}`,
       title: String(row.title).trim(),
+      description: String(row.description || "").trim(),
       mediaType: imageUrl ? "image" : "video",
       mediaUrl: imageUrl || cloudinaryVideoUrl(originalUrl),
       posterUrl: String(row.posterLink || "").trim() || (imageUrl ? imageUrl : cloudinaryPosterUrl(originalUrl))
@@ -144,6 +145,15 @@ const stopActiveMedia = () => {
   activeMedia = null;
 };
 
+const appendMediaDetails = (host, item) => {
+  const details = document.createElement("div");
+  details.className = "portfolio-deck__details";
+  details.innerHTML = `
+    <h3>${escapeHtml(item.title)}</h3>
+    ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}`;
+  host.appendChild(details);
+};
+
 const buildActiveMedia = (item) => {
   const host = root?.querySelector("[data-active-media]");
   if (!host) return;
@@ -162,6 +172,7 @@ const buildActiveMedia = (item) => {
     image.loading = "eager";
     image.addEventListener("load", () => applyAspectRatio(image), { once: true });
     host.appendChild(image);
+    appendMediaDetails(host, item);
     activeMedia = image;
     return;
   }
@@ -183,6 +194,7 @@ const buildActiveMedia = (item) => {
     }
   }, { once: true });
   host.appendChild(video);
+  appendMediaDetails(host, item);
   activeMedia = video;
 
   if (!reduceMotion) video.play().catch(() => {});
