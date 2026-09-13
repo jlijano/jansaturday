@@ -63,6 +63,12 @@ document.querySelector("[data-year]")?.replaceChildren(String(new Date().getFull
 const brandModule = document.createElement("script");
 brandModule.src = "brand-logo.js";
 brandModule.defer = true;
+brandModule.addEventListener("load", () => {
+  const transparentBrandModule = document.createElement("script");
+  transparentBrandModule.src = "brand-logo-transparent.js";
+  transparentBrandModule.defer = true;
+  document.body.appendChild(transparentBrandModule);
+});
 document.body.appendChild(brandModule);
 
 const consultationModule = document.createElement("script");
