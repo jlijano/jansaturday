@@ -1,0 +1,34 @@
+.consultation-modal[hidden]{display:none}
+body.consultation-modal-open{overflow:hidden}
+.consultation-modal{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:24px}
+.consultation-modal__backdrop{position:absolute;inset:0;background:rgba(20,4,7,.72);backdrop-filter:blur(10px)}
+.consultation-modal__dialog{position:relative;z-index:1;width:min(760px,100%);max-height:min(90vh,820px);overflow:auto;border:1px solid rgba(78,9,17,.18);border-radius:28px;background:#fffaf6;color:#2b1115;box-shadow:0 32px 90px rgba(20,4,7,.34);padding:34px}
+.consultation-modal__close{position:absolute;top:18px;right:18px;width:42px;height:42px;display:grid;place-items:center;border:1px solid rgba(78,9,17,.16);border-radius:50%;background:#fff;color:#4e0911;font-size:1.45rem;line-height:1;cursor:pointer}
+.consultation-modal__close:hover{background:#f6e9e3}
+.consultation-modal__eyebrow{margin:0 56px 8px 0;color:#7a3941;font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.consultation-modal__dialog h2{margin:0 56px 10px 0;color:#4e0911;font-size:clamp(1.8rem,4vw,2.55rem);line-height:1.08}
+.consultation-modal__intro{margin:0 0 24px;color:#6d5156;max-width:620px}
+.consultation-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.consultation-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.consultation-field--full{grid-column:1/-1}
+.consultation-field label{font-size:.85rem;font-weight:800;color:#4e0911}
+.consultation-field label span{font-weight:600;color:#8d7176}
+.consultation-field input,.consultation-field select,.consultation-field textarea{width:100%;border:1px solid rgba(78,9,17,.22);border-radius:13px;background:#fff;color:#2b1115;padding:13px 14px;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
+.consultation-field textarea{min-height:126px;resize:vertical}
+.consultation-field input:focus,.consultation-field select:focus,.consultation-field textarea:focus{border-color:#4e0911;box-shadow:0 0 0 4px rgba(78,9,17,.09)}
+.consultation-field [aria-invalid="true"]{border-color:#b3261e;background:#fff7f5}
+.consultation-field__error{min-height:17px;margin:0;color:#a22620;font-size:.76rem;line-height:1.35}
+.consultation-form__privacy{grid-column:1/-1;margin:0;color:#735a5f;font-size:.78rem;line-height:1.5}
+.consultation-form__actions{grid-column:1/-1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:2px}
+.consultation-form__submit{appearance:none;border:0;cursor:pointer;min-height:50px;padding:0 24px;border-radius:999px;background:#4e0911;color:#fff;font-weight:800;box-shadow:0 12px 28px rgba(78,9,17,.2)}
+.consultation-form__submit:hover{transform:translateY(-1px)}
+.consultation-form__submit:disabled{opacity:.65;cursor:wait;transform:none}
+.consultation-form__cancel{appearance:none;border:1px solid rgba(78,9,17,.2);cursor:pointer;min-height:50px;padding:0 22px;border-radius:999px;background:transparent;color:#4e0911;font-weight:800}
+.consultation-form__status{grid-column:1/-1;min-height:22px;margin:0;font-size:.86rem;font-weight:700;color:#4e0911}
+.consultation-form__status[data-state="error"]{color:#a22620}
+.consultation-form__status[data-state="success"]{color:#176b45}
+.consultation-honeypot{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;clip-path:inset(50%)!important}
+.consultation-response-frame{position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none}
+.consultation-trigger[aria-haspopup="dialog"]{cursor:pointer}
+@media(max-width:640px){.consultation-modal{padding:0;align-items:end}.consultation-modal__dialog{width:100%;max-height:92svh;border-radius:24px 24px 0 0;padding:28px 20px 24px}.consultation-form{grid-template-columns:1fr}.consultation-field--full,.consultation-form__privacy,.consultation-form__actions,.consultation-form__status{grid-column:1}.consultation-form__actions{align-items:stretch}.consultation-form__submit,.consultation-form__cancel{width:100%}}
+@media(prefers-reduced-motion:reduce){.consultation-field input,.consultation-field select,.consultation-field textarea,.consultation-form__submit{transition:none}}
