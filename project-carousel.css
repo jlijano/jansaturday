@@ -457,3 +457,34 @@
 @media (prefers-reduced-motion: reduce) {
   .portfolio-carousel__slide,.portfolio-carousel__dot,.portfolio-carousel__control,.projects-carousel-section .portfolio-deck__dot::before,.projects-carousel-section .portfolio-deck__details,.projects-carousel-section .portfolio-deck__preview { transition:none!important; }
 }
+
+/* Larger featured media requested: expand the active video while preserving side previews and controls. */
+@media (min-width: 901px) {
+  .projects-carousel-section > .container {
+    width: min(1480px, calc(100% - 72px)) !important;
+  }
+
+  .projects-carousel-section .portfolio-deck__stage {
+    min-height: clamp(660px, 62vw, 820px) !important;
+  }
+
+  .projects-carousel-section .portfolio-deck__active {
+    width: min(82vw, 1120px) !important;
+    max-width: 1120px !important;
+  }
+
+  .projects-carousel-section .portfolio-deck__preview {
+    width: min(18vw, 245px) !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .projects-carousel-section .portfolio-deck__active {
+    width: min(78vw, 1240px) !important;
+    max-width: 1240px !important;
+  }
+
+  .projects-carousel-section .portfolio-deck__stage {
+    min-height: 840px !important;
+  }
+}
