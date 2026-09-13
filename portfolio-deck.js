@@ -144,9 +144,19 @@
 
   let lastSignature = "";
 
+  const restoreVideoControls = () => {
+    root.querySelectorAll("video.portfolio-carousel__video").forEach((video) => {
+      video.controls = true;
+      video.setAttribute("controls", "");
+      video.setAttribute("playsinline", "");
+    });
+  };
+
   const syncDeck = () => {
     const slides = [...root.querySelectorAll("[data-portfolio-slide]")];
     if (!slides.length) return;
+
+    restoreVideoControls();
 
     let active = slides.findIndex((slide) => slide.classList.contains("is-active"));
     if (active < 0) active = 0;
