@@ -35,5 +35,44 @@ body.consultation-modal-open{overflow:hidden}
 .consultation-honeypot{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;clip-path:inset(50%)!important}
 .consultation-response-frame{position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none}
 .consultation-trigger[aria-haspopup="dialog"]{cursor:pointer}
-@media(max-width:640px){.consultation-modal{padding:14px;align-items:center}.consultation-modal__backdrop{border-radius:24px}.consultation-modal__dialog{width:100%;max-height:calc(100svh - 28px);border-radius:26px;padding:26px 20px 24px}.consultation-modal__dialog::-webkit-scrollbar-track{margin-block:14px}.consultation-modal__close{top:10px}.consultation-form{grid-template-columns:1fr}.consultation-field--full,.consultation-form__privacy,.consultation-form__actions,.consultation-form__status{grid-column:1}.consultation-form__actions{align-items:stretch}.consultation-form__submit,.consultation-form__cancel{width:100%}}
-@media(prefers-reduced-motion:reduce){.consultation-field input,.consultation-field select,.consultation-field textarea,.consultation-form__submit,.consultation-modal__close{transition:none}}
+
+.contact-booking-section{position:relative;overflow:hidden;padding:84px 0 96px!important;background:linear-gradient(115deg,#f9f3ee 0%,#f8f0e8 52%,#f4e9df 100%);color:#332823}
+.contact-booking-section::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 84% 18%,rgba(225,199,176,.24),transparent 34%),radial-gradient(circle at 14% 82%,rgba(235,214,194,.23),transparent 32%)}
+.contact-booking-shell{position:relative;z-index:1}
+.contact-booking-section .section-label{margin-bottom:26px}
+.contact-booking-section .section-label span{color:#5f1b25;font-size:.72rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.contact-booking-section .section-label i{background:#6f2730}
+.contact-booking-grid{display:grid;grid-template-columns:minmax(0,1.12fr) 1px minmax(360px,.88fr);gap:64px;align-items:center}
+.contact-booking-copy{max-width:650px;padding:6px 0}
+.contact-brand-mark{display:inline-flex;align-items:center;gap:14px;margin-bottom:58px;color:#6f1b26}
+.contact-brand-symbol{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:linear-gradient(145deg,#7a1f2b,#4e0911);color:#fff;font-weight:800;letter-spacing:-.05em;box-shadow:0 12px 24px rgba(78,9,17,.14)}
+.contact-brand-mark>span:last-child{display:grid;gap:2px}
+.contact-brand-mark strong{font-size:1rem;letter-spacing:.08em}
+.contact-brand-mark small{font-size:.6rem;font-weight:700;letter-spacing:.22em}
+.contact-booking-copy h2{max-width:620px;margin:0;color:#322824;font-family:Manrope,sans-serif;font-size:clamp(2.7rem,4.7vw,5rem);font-weight:700;line-height:.96;letter-spacing:-.055em;text-wrap:balance}
+.contact-accent-line{width:92px;height:2px;margin:22px 0 26px;background:linear-gradient(90deg,#8b2532,#d1a47c)}
+.contact-booking-copy p{max-width:610px;margin:0 0 16px;color:#5d4b44;font-size:1rem;line-height:1.55}
+.contact-booking-copy p strong{color:#392a25}
+.contact-booking-divider{align-self:stretch;min-height:390px;background:linear-gradient(180deg,transparent,rgba(150,117,88,.32) 16%,rgba(150,117,88,.32) 84%,transparent)}
+.contact-booking-form{position:relative;display:grid;gap:12px;padding:30px;border:1px solid rgba(255,255,255,.78);border-radius:22px;background:rgba(255,255,255,.76);box-shadow:0 24px 60px rgba(78,52,37,.13),inset 0 1px 0 rgba(255,255,255,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.contact-booking-field{display:grid;gap:4px}
+.contact-booking-form input,.contact-booking-form textarea{width:100%;border:1px solid rgba(71,57,49,.48);border-radius:6px;background:rgba(255,255,255,.52);color:#332823;font:inherit;padding:12px 13px;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
+.contact-booking-form input{min-height:48px}
+.contact-booking-form textarea{min-height:116px;resize:vertical}
+.contact-booking-form input::placeholder,.contact-booking-form textarea::placeholder{color:#776b65}
+.contact-booking-form input:focus,.contact-booking-form textarea:focus{border-color:#751722;background:#fff;box-shadow:0 0 0 3px rgba(117,23,34,.09)}
+.contact-booking-form [aria-invalid="true"]{border-color:#b3261e;background:#fff7f5}
+.contact-booking-error{min-height:13px;margin:0;color:#a22620;font-size:.7rem;line-height:1.2}
+.contact-booking-submit{min-height:52px;border:0;border-radius:999px;background:linear-gradient(180deg,#8b1625,#6f101d);color:#fff;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 12px 26px rgba(111,16,29,.22);transition:transform .18s ease,box-shadow .18s ease,opacity .18s ease}
+.contact-booking-submit:hover,.contact-booking-submit:focus-visible{transform:translateY(-1px);box-shadow:0 16px 30px rgba(111,16,29,.26)}
+.contact-booking-submit:focus-visible{outline:3px solid rgba(117,23,34,.2);outline-offset:3px}
+.contact-booking-submit:disabled{opacity:.65;cursor:wait;transform:none}
+.contact-booking-note{margin:0;padding:2px 10px 0;color:#70625c;font-size:.74rem;line-height:1.45;text-align:center}
+.contact-booking-status{min-height:20px;margin:0;color:#5f1b25;font-size:.78rem;font-weight:700;text-align:center}
+.contact-booking-status[data-state="error"]{color:#a22620}
+.contact-booking-status[data-state="success"]{color:#176b45}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+@media(max-width:900px){.contact-booking-grid{grid-template-columns:1fr;gap:34px}.contact-booking-divider{display:none}.contact-booking-copy{max-width:none}.contact-brand-mark{margin-bottom:34px}.contact-booking-form{max-width:640px;width:100%;justify-self:start}}
+@media(max-width:640px){.consultation-modal{padding:14px;align-items:center}.consultation-modal__backdrop{border-radius:24px}.consultation-modal__dialog{width:100%;max-height:calc(100svh - 28px);border-radius:26px;padding:26px 20px 24px}.consultation-modal__dialog::-webkit-scrollbar-track{margin-block:14px}.consultation-modal__close{top:10px}.consultation-form{grid-template-columns:1fr}.consultation-field--full,.consultation-form__privacy,.consultation-form__actions,.consultation-form__status{grid-column:1}.consultation-form__actions{align-items:stretch}.consultation-form__submit,.consultation-form__cancel{width:100%}.contact-booking-section{padding:68px 0 76px!important}.contact-booking-grid{gap:26px}.contact-booking-copy h2{font-size:clamp(2.5rem,12vw,3.7rem)}.contact-brand-mark{margin-bottom:28px}.contact-booking-form{padding:20px;border-radius:18px}}
+@media(prefers-reduced-motion:reduce){.consultation-field input,.consultation-field select,.consultation-field textarea,.consultation-form__submit,.consultation-modal__close,.contact-booking-form input,.contact-booking-form textarea,.contact-booking-submit{transition:none}}
