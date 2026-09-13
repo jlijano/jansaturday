@@ -18,7 +18,7 @@
   width: 100%;
   border: 1px solid rgba(78, 9, 17, .16);
   border-radius: 26px;
-  background: #260707;
+  background: transparent;
   box-shadow: 0 24px 64px rgba(78, 9, 17, .18);
   overflow: hidden;
   isolation: isolate;
@@ -31,22 +31,26 @@
 
 .portfolio-carousel__stage {
   position: relative;
+  display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
   min-height: 420px;
-  background: #260707;
+  background: transparent;
+  overflow: hidden;
 }
 
 .portfolio-carousel__slide {
   position: absolute;
   inset: 0;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
   transition: opacity .55s ease;
 }
 
 .portfolio-carousel__slide.is-active {
-  opacity: 1;
+  opacity: 1 !important;
+  visibility: visible !important;
   pointer-events: auto;
   z-index: 2;
 }
@@ -54,9 +58,12 @@
 .portfolio-carousel__video {
   position: absolute;
   inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
+  z-index: 1;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
   object-fit: cover;
   background: #260707;
   border: 0;
@@ -171,6 +178,11 @@
 
 .portfolio-carousel__toolbar {
   display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
 }
 
 .portfolio-carousel__toolbar.is-single {
