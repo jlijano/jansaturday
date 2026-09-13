@@ -236,7 +236,7 @@
 }
 
 .projects-carousel-section .portfolio-deck__stage {
-  padding-bottom: 112px !important;
+  padding-bottom: 96px !important;
 }
 
 .projects-carousel-section .portfolio-deck__active {
@@ -253,30 +253,79 @@
   border-radius: inherit;
 }
 
+.projects-carousel-section .portfolio-deck__details {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: clamp(22px, 4vw, 42px);
+  padding-bottom: clamp(66px, 8vw, 82px);
+  border-radius: inherit;
+  background: linear-gradient(180deg, transparent 38%, rgba(18, 3, 4, .82) 100%);
+  color: #fff;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .22s ease, visibility .22s ease;
+}
+
+.projects-carousel-section .portfolio-deck__details h3 {
+  margin: 0;
+  max-width: 760px;
+  color: #fff;
+  font-size: clamp(1.2rem, 2.4vw, 2rem);
+  line-height: 1.12;
+}
+
+.projects-carousel-section .portfolio-deck__details p {
+  margin: 0;
+  max-width: 720px;
+  color: rgba(255, 255, 255, .88);
+  font-size: clamp(.84rem, 1.25vw, 1rem);
+  line-height: 1.5;
+}
+
+.projects-carousel-section .portfolio-deck__media:hover .portfolio-deck__details,
+.projects-carousel-section .portfolio-deck__active:focus-within .portfolio-deck__details {
+  opacity: 1;
+  visibility: visible;
+}
+
 .projects-carousel-section .portfolio-deck__control {
   top: auto !important;
-  bottom: -72px !important;
+  bottom: -62px !important;
+  width: 42px !important;
+  height: 42px !important;
   transform: none !important;
 }
 
 .projects-carousel-section .portfolio-deck__control--prev {
-  left: calc(50% - 118px) !important;
+  left: calc(50% - 105px) !important;
 }
 
 .projects-carousel-section .portfolio-deck__control--next {
-  right: calc(50% - 118px) !important;
+  right: calc(50% - 105px) !important;
 }
 
 .projects-carousel-section .portfolio-deck__nav {
-  bottom: -69px !important;
+  bottom: -59px !important;
+  gap: 6px !important;
+  padding: 6px 9px !important;
+}
+
+.projects-carousel-section .portfolio-deck__nav > div {
+  gap: 2px !important;
 }
 
 .projects-carousel-section .portfolio-deck__dot {
   position: relative;
   display: grid;
   place-items: center;
-  width: 28px !important;
-  height: 28px !important;
+  width: 24px !important;
+  height: 24px !important;
   padding: 0 !important;
   background: transparent !important;
 }
@@ -284,15 +333,15 @@
 .projects-carousel-section .portfolio-deck__dot::before {
   content: "";
   display: block;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
   background: rgba(255, 255, 255, .48);
   transition: width .2s ease, background .2s ease;
 }
 
 .projects-carousel-section .portfolio-deck__dot.is-active::before {
-  width: 20px;
+  width: 18px;
   background: #fff;
 }
 
@@ -344,19 +393,41 @@
 
   .projects-carousel-section .portfolio-deck__stage {
     min-height: 0 !important;
-    padding: 28px 0 112px !important;
+    padding: 28px 0 96px !important;
   }
 
   .projects-carousel-section .portfolio-deck__active {
     max-width: calc(100vw - 32px);
   }
 
+  .projects-carousel-section .portfolio-deck__details {
+    padding: 18px;
+    padding-bottom: 62px;
+  }
+
+  .projects-carousel-section .portfolio-deck__details h3 {
+    font-size: 1.05rem;
+  }
+
+  .projects-carousel-section .portfolio-deck__details p {
+    font-size: .8rem;
+    line-height: 1.42;
+  }
+
   .projects-carousel-section .portfolio-deck__control {
-    bottom: -74px !important;
+    bottom: -64px !important;
+  }
+
+  .projects-carousel-section .portfolio-deck__control--prev {
+    left: calc(50% - 100px) !important;
+  }
+
+  .projects-carousel-section .portfolio-deck__control--next {
+    right: calc(50% - 100px) !important;
   }
 
   .projects-carousel-section .portfolio-deck__nav {
-    bottom: -71px !important;
+    bottom: -61px !important;
   }
 }
 
@@ -364,7 +435,8 @@
   .portfolio-carousel__slide,
   .portfolio-carousel__dot,
   .portfolio-carousel__control,
-  .projects-carousel-section .portfolio-deck__dot::before {
+  .projects-carousel-section .portfolio-deck__dot::before,
+  .projects-carousel-section .portfolio-deck__details {
     transition: none;
   }
 }
