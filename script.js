@@ -44,8 +44,8 @@ if ("IntersectionObserver" in window) {
 }
 
 const revealElements = document.querySelectorAll(".reveal");
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-if ("IntersectionObserver" in window && !reduceMotion) {
+const pageReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if ("IntersectionObserver" in window && !pageReduceMotion) {
   const revealObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
