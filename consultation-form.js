@@ -237,6 +237,7 @@
   }
 
   function isGoogleScriptOrigin(origin) {
+    if (origin === 'null') return true;
     try {
       const hostname = new URL(origin).hostname;
       return hostname === 'script.google.com' || hostname.endsWith('.googleusercontent.com');
