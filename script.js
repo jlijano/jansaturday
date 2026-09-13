@@ -37,31 +37,17 @@ if (servicesTitle) servicesTitle.textContent = "AI Solutions for Real Business N
 
 const servicesSection = document.querySelector("#services.service-showcase");
 const servicesGrid = servicesSection?.querySelector(".service-reference-grid");
-const serviceDetails = servicesSection ? [...servicesSection.querySelectorAll(".service-more")] : [];
-if (servicesSection && servicesGrid && serviceDetails.length && !servicesSection.querySelector(".services-more-wrap")) {
+if (servicesSection && servicesGrid && !servicesSection.querySelector(".services-more-wrap")) {
   const servicesMoreWrap = document.createElement("div");
   servicesMoreWrap.className = "services-more-wrap reveal";
 
-  const servicesMoreButton = document.createElement("button");
-  servicesMoreButton.type = "button";
-  servicesMoreButton.className = "services-more-button";
-  servicesMoreButton.textContent = "View More Services";
-  servicesMoreButton.setAttribute("aria-expanded", "false");
-  servicesMoreButton.setAttribute("aria-controls", serviceDetails.map((detail, index) => {
-    if (!detail.id) detail.id = `service-more-${index + 1}`;
-    return detail.id;
-  }).join(" "));
+  const servicesMoreLink = document.createElement("a");
+  servicesMoreLink.className = "services-more-button";
+  servicesMoreLink.href = "services.html";
+  servicesMoreLink.textContent = "View More Services";
+  servicesMoreLink.setAttribute("aria-label", "View the full AI services catalog");
 
-  servicesMoreButton.addEventListener("click", () => {
-    const shouldOpen = servicesMoreButton.getAttribute("aria-expanded") !== "true";
-    serviceDetails.forEach((detail) => {
-      detail.open = shouldOpen;
-    });
-    servicesMoreButton.setAttribute("aria-expanded", String(shouldOpen));
-    servicesMoreButton.textContent = shouldOpen ? "Show Less Services" : "View More Services";
-  });
-
-  servicesMoreWrap.appendChild(servicesMoreButton);
+  servicesMoreWrap.appendChild(servicesMoreLink);
   servicesGrid.insertAdjacentElement("afterend", servicesMoreWrap);
 }
 
