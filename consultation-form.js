@@ -1,6 +1,5 @@
 (() => {
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxMkAafaG1IRUvC7HF-cfBgEWuwFEHf6WNnzcr3WbRikTONN85N7MSCVkDr5ct5MJQn/exec';
-  const CALENDLY_URL = 'https://calendly.com/j-saturday-ai';
 
   const stylesheet = document.createElement('link');
   stylesheet.rel = 'stylesheet';
@@ -14,7 +13,7 @@
         <button class="consultation-modal__close" type="button" aria-label="Close consultation form" data-consultation-close>×</button>
         <p class="consultation-modal__eyebrow">AI Consultation</p>
         <h2 id="consultation-title">Tell me what you’d like to explore.</h2>
-        <p class="consultation-modal__intro" id="consultation-description">Share a little context first. Once your request is received, you’ll continue to available consultation times.</p>
+        <p class="consultation-modal__intro" id="consultation-description">Share a little context first. I’ll review your request and, once approved, you’ll receive an email with the link to choose an available consultation time.</p>
 
         <form class="consultation-form" method="post" novalidate data-consultation-form>
           <input name="requestToken" type="hidden" value="">
@@ -69,10 +68,10 @@
             <input id="consultation-fax" name="faxNumber" type="text" tabindex="-1" autocomplete="off">
           </div>
 
-          <p class="consultation-form__privacy">By continuing, you agree that the information you provide may be used to respond to your consultation request and arrange your meeting.</p>
+          <p class="consultation-form__privacy">By submitting, you agree that the information you provide may be used to review your consultation request, respond to you, and arrange your meeting.</p>
 
           <div class="consultation-form__actions">
-            <button class="consultation-form__submit" type="submit" data-consultation-submit>Continue to Scheduling</button>
+            <button class="consultation-form__submit" type="submit" data-consultation-submit>Submit Consultation Request</button>
             <button class="consultation-form__cancel" type="button" data-consultation-close>Cancel</button>
           </div>
           <p class="consultation-form__status" role="status" aria-live="polite" data-consultation-status></p>
@@ -107,7 +106,7 @@
 
   const note = document.querySelector('#contact .cta-note');
   if (note) {
-    note.textContent = 'Share a little context first, then choose an available consultation time. Your request is saved before scheduling so the conversation can continue even if you do not complete the booking.';
+    note.textContent = 'Send your consultation request first. Once it is reviewed and approved, you’ll receive an email with the link to choose your consultation time.';
   }
 
   const modal = document.querySelector('[data-consultation-modal]');
@@ -219,21 +218,12 @@
   function setSubmitting(active) {
     submitting = active;
     submitButton.disabled = active;
-    submitButton.textContent = active ? 'Sending your details…' : 'Continue to Scheduling';
+    submitButton.textContent = active ? 'Sending your details…' : 'Submit Consultation Request';
   }
 
   function newRequestToken() {
     if (window.crypto?.randomUUID) return window.crypto.randomUUID();
     return `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
-  }
-
-  function calendlyDestination() {
-    const url = new URL(CALENDLY_URL);
-    const name = fields.name?.value.trim();
-    const email = fields.email?.value.trim();
-    if (name) url.searchParams.set('name', name);
-    if (email) url.searchParams.set('email', email);
-    return url.toString();
   }
 
   function isGoogleScriptOrigin(origin) {
@@ -313,12 +303,13 @@
     clearTimeout(submissionTimer);
 
     if (data.payload.ok) {
-      status.textContent = 'Request received. Opening available consultation times…';
+      status.textContent = 'Request received. I’ll review it and email you the scheduling link once it is approved.';
       status.dataset.state = 'success';
       setSubmitting(false);
-      window.setTimeout(() => {
-        window.location.assign(calendlyDestination());
-      }, 700);
+      submitButton.disabled = true;
+      form.querySelectorAll('input, select, textarea').forEach((field) => {
+        field.disabled = true;
+      });
       return;
     }
 
