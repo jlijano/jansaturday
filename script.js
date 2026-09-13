@@ -32,6 +32,9 @@ function updateHeader() {
 updateHeader();
 window.addEventListener("scroll", updateHeader, { passive: true });
 
+const servicesTitle = document.querySelector("#services-title");
+if (servicesTitle) servicesTitle.textContent = "AI Solutions for Real Business Needs";
+
 const sections = [...document.querySelectorAll("main section[id]")];
 if ("IntersectionObserver" in window) {
   const sectionObserver = new IntersectionObserver((entries) => {
