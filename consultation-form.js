@@ -1,6 +1,113 @@
 (() => {
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxMkAafaG1IRUvC7HF-cfBgEWuwFEHf6WNnzcr3WbRikTONN85N7MSCVkDr5ct5MJQn/exec';
   const CALENDLY_URL = 'https://calendly.com/j-saturday-ai';
+
+  const stylesheet = document.createElement('link');
+  stylesheet.rel = 'stylesheet';
+  stylesheet.href = 'consultation-form.css';
+  document.head.appendChild(stylesheet);
+
+  const modalMarkup = `
+    <div class="consultation-modal" data-consultation-modal hidden>
+      <div class="consultation-modal__backdrop" data-consultation-close></div>
+      <div class="consultation-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="consultation-title" aria-describedby="consultation-description">
+        <button class="consultation-modal__close" type="button" aria-label="Close consultation form" data-consultation-close>×</button>
+        <p class="consultation-modal__eyebrow">AI Consultation</p>
+        <h2 id="consultation-title">Tell me what you’d like to explore.</h2>
+        <p class="consultation-modal__intro" id="consultation-description">Share a little context first. Once your request is received, you’ll continue to available consultation times.</p>
+
+        <form class="consultation-form" method="post" novalidate data-consultation-form>
+          <div class="consultation-field">
+            <label for="consultation-name">Name *</label>
+            <input id="consultation-name" name="name" type="text" autocomplete="name" maxlength="120" required aria-describedby="consultation-name-error">
+            <p class="consultation-field__error" id="consultation-name-error" data-error-for="name"></p>
+          </div>
+
+          <div class="consultation-field">
+            <label for="consultation-email">Email *</label>
+            <input id="consultation-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="consultation-email-error">
+            <p class="consultation-field__error" id="consultation-email-error" data-error-for="email"></p>
+          </div>
+
+          <div class="consultation-field">
+            <label for="consultation-company">Company / Organisation <span>(optional)</span></label>
+            <input id="consultation-company" name="company" type="text" autocomplete="organization" maxlength="160" aria-describedby="consultation-company-error">
+            <p class="consultation-field__error" id="consultation-company-error" data-error-for="company"></p>
+          </div>
+
+          <div class="consultation-field">
+            <label for="consultation-website">Website <span>(optional)</span></label>
+            <input id="consultation-website" name="website" type="url" inputmode="url" autocomplete="url" maxlength="500" placeholder="https://example.com" aria-describedby="consultation-website-error">
+            <p class="consultation-field__error" id="consultation-website-error" data-error-for="website"></p>
+          </div>
+
+          <div class="consultation-field consultation-field--full">
+            <label for="consultation-interest">What would you like help with? *</label>
+            <select id="consultation-interest" name="aiInterest" required aria-describedby="consultation-interest-error">
+              <option value="">Select an area</option>
+              <option>AI Strategy &amp; Opportunity Mapping</option>
+              <option>AI Automation &amp; Workflows</option>
+              <option>AI Assistants / Agents</option>
+              <option>AI-Powered Business Tools</option>
+              <option>Generative AI</option>
+              <option>AI Video / Digital Experiences</option>
+              <option>Other</option>
+            </select>
+            <p class="consultation-field__error" id="consultation-interest-error" data-error-for="aiInterest"></p>
+          </div>
+
+          <div class="consultation-field consultation-field--full">
+            <label for="consultation-message">Tell me briefly about the opportunity or challenge. *</label>
+            <textarea id="consultation-message" name="message" maxlength="3000" required aria-describedby="consultation-message-error"></textarea>
+            <p class="consultation-field__error" id="consultation-message-error" data-error-for="message"></p>
+          </div>
+
+          <div class="consultation-honeypot" aria-hidden="true">
+            <label for="consultation-fax">Fax number</label>
+            <input id="consultation-fax" name="faxNumber" type="text" tabindex="-1" autocomplete="off">
+          </div>
+
+          <p class="consultation-form__privacy">By continuing, you agree that the information you provide may be used to respond to your consultation request and arrange your meeting.</p>
+
+          <div class="consultation-form__actions">
+            <button class="consultation-form__submit" type="submit" data-consultation-submit>Continue to Scheduling</button>
+            <button class="consultation-form__cancel" type="button" data-consultation-close>Cancel</button>
+          </div>
+          <p class="consultation-form__status" role="status" aria-live="polite" data-consultation-status></p>
+        </form>
+      </div>
+    </div>
+    <iframe class="consultation-response-frame" name="consultation-response-frame" title="Consultation form response" data-consultation-frame></iframe>`;
+
+  document.body.insertAdjacentHTML('beforeend', modalMarkup);
+
+  const finalCta = document.querySelector('#contact .hero-actions .button[aria-disabled="true"]');
+  if (finalCta) {
+    const replacement = document.createElement('button');
+    replacement.type = 'button';
+    replacement.className = finalCta.className;
+    replacement.textContent = finalCta.textContent;
+    finalCta.replaceWith(replacement);
+  }
+
+  const triggerCandidates = [
+    document.querySelector('.header-cta'),
+    document.querySelector('.mobile-menu .button[href="#contact"]'),
+    document.querySelector('.hero .hero-actions .button[href="#contact"]'),
+    document.querySelector('.projects-carousel-section .section-head > .outline-button[href="#contact"]'),
+    document.querySelector('#contact .hero-actions .button')
+  ].filter(Boolean);
+
+  triggerCandidates.forEach((trigger) => {
+    trigger.setAttribute('data-consultation-trigger', '');
+    trigger.setAttribute('aria-haspopup', 'dialog');
+  });
+
+  const note = document.querySelector('#contact .cta-note');
+  if (note) {
+    note.textContent = 'Share a little context first, then choose an available consultation time. Your request is saved before scheduling so the conversation can continue even if you do not complete the booking.';
+  }
+
   const modal = document.querySelector('[data-consultation-modal]');
   const dialog = modal?.querySelector('[role="dialog"]');
   const form = modal?.querySelector('[data-consultation-form]');
