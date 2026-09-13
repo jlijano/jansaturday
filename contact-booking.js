@@ -7,6 +7,38 @@
   const frame = document.querySelector('[data-consultation-frame]');
   if (!form || !submit || !status || !frame) return;
 
+  const installContactLogo = (attempt = 0) => {
+    const brand = document.querySelector('.contact-brand-mark');
+    if (!brand || brand.querySelector('.contact-brand-logo')) return;
+
+    const source = document.querySelector('.brand--logo img, .brand img');
+    if (!source?.src) {
+      if (attempt < 20) window.setTimeout(() => installContactLogo(attempt + 1), 100);
+      return;
+    }
+
+    const logo = document.createElement('img');
+    logo.className = 'contact-brand-logo';
+    logo.src = source.src;
+    logo.alt = 'Jan Lijano AI Consulting';
+    logo.decoding = 'async';
+    brand.replaceChildren(logo);
+
+    if (!document.querySelector('#contact-brand-logo-style')) {
+      const style = document.createElement('style');
+      style.id = 'contact-brand-logo-style';
+      style.textContent = `
+        .contact-brand-mark{display:block!important;width:min(100%,270px)!important;margin-bottom:52px!important;color:inherit!important}
+        .contact-brand-logo{display:block;width:100%;max-width:270px;height:auto;object-fit:contain;object-position:left center;background:transparent}
+        @media(max-width:900px){.contact-brand-mark{width:min(100%,240px)!important;margin-bottom:34px!important}.contact-brand-logo{max-width:240px}}
+        @media(max-width:640px){.contact-brand-mark{width:min(100%,220px)!important;margin-bottom:28px!important}.contact-brand-logo{max-width:220px}}
+      `;
+      document.head.appendChild(style);
+    }
+  };
+
+  installContactLogo();
+
   let activeRequestToken = '';
   let timer = null;
   let submitting = false;
