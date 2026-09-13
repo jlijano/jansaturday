@@ -14,7 +14,7 @@ const setupProfileIntro = () => {
   if (!heroGrid || heroGrid.querySelector(".hero-intro-video")) return;
 
   const media = document.createElement("div");
-  media.className = "hero-intro-video reveal";
+  media.className = "hero-intro-video reveal is-visible";
   media.setAttribute("aria-label", "Who am I profile introduction video");
   media.innerHTML = `
     <div class="hero-intro-video__frame">
