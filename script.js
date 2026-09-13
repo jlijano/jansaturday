@@ -35,6 +35,36 @@ window.addEventListener("scroll", updateHeader, { passive: true });
 const servicesTitle = document.querySelector("#services-title");
 if (servicesTitle) servicesTitle.textContent = "AI Solutions for Real Business Needs";
 
+const servicesSection = document.querySelector("#services.service-showcase");
+const servicesGrid = servicesSection?.querySelector(".service-reference-grid");
+const serviceDetails = servicesSection ? [...servicesSection.querySelectorAll(".service-more")] : [];
+if (servicesSection && servicesGrid && serviceDetails.length && !servicesSection.querySelector(".services-more-wrap")) {
+  const servicesMoreWrap = document.createElement("div");
+  servicesMoreWrap.className = "services-more-wrap reveal";
+
+  const servicesMoreButton = document.createElement("button");
+  servicesMoreButton.type = "button";
+  servicesMoreButton.className = "services-more-button";
+  servicesMoreButton.textContent = "View More Services";
+  servicesMoreButton.setAttribute("aria-expanded", "false");
+  servicesMoreButton.setAttribute("aria-controls", serviceDetails.map((detail, index) => {
+    if (!detail.id) detail.id = `service-more-${index + 1}`;
+    return detail.id;
+  }).join(" "));
+
+  servicesMoreButton.addEventListener("click", () => {
+    const shouldOpen = servicesMoreButton.getAttribute("aria-expanded") !== "true";
+    serviceDetails.forEach((detail) => {
+      detail.open = shouldOpen;
+    });
+    servicesMoreButton.setAttribute("aria-expanded", String(shouldOpen));
+    servicesMoreButton.textContent = shouldOpen ? "Show Less Services" : "View More Services";
+  });
+
+  servicesMoreWrap.appendChild(servicesMoreButton);
+  servicesGrid.insertAdjacentElement("afterend", servicesMoreWrap);
+}
+
 const sections = [...document.querySelectorAll("main section[id]")];
 if ("IntersectionObserver" in window) {
   const sectionObserver = new IntersectionObserver((entries) => {
