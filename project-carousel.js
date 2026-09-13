@@ -6,7 +6,6 @@ const INTRO_DESCRIPTION = "AI Consultant helping businesses adopt practical AI, 
 const setupProfileIntro = () => {
   const heroGrid = document.querySelector(".hero-grid");
   const heroDescription = document.querySelector(".hero-description");
-
   if (heroDescription) heroDescription.textContent = INTRO_DESCRIPTION;
   if (!heroGrid || heroGrid.querySelector(".hero-intro-video")) return;
 
@@ -71,22 +70,35 @@ const cloudinaryDirectUrl = (input = "") => {
         return `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/video/upload/f_auto,q_auto/${encodedId}.mp4`;
       }
     }
-    if (url.hostname.endsWith("cloudinary.com") && /\.(mp4|webm|ogg)(?:$|\?)/i.test(url.href)) return url.href;
     if (/\.(mp4|webm|ogg)(?:$|\?)/i.test(url.href)) return url.href;
   } catch (_) {}
   return "";
 };
 
+const directImageUrl = (input = "") => {
+  try {
+    const url = new URL(String(input).trim());
+    return /\.(avif|webp|png|jpe?g|gif)(?:$|\?)/i.test(url.href) ? url.href : "";
+  } catch (_) {
+    return "";
+  }
+};
+
 const normalize = (rows) => (Array.isArray(rows) ? rows : [])
-  .filter((row) => row && row.title && row.videoLink)
-  .map((row, index) => ({
-    id: row.id || `portfolio-${index + 1}`,
-    title: String(row.title).trim(),
-    description: String(row.description || "").trim(),
-    status: String(row.status || "").trim(),
-    originalUrl: String(row.videoLink).trim(),
-    videoUrl: cloudinaryDirectUrl(row.videoLink)
-  }));
+  .filter((row) => row && row.title && (row.videoLink || row.imageLink || row.mediaLink))
+  .map((row, index) => {
+    const originalUrl = String(row.videoLink || row.imageLink || row.mediaLink || "").trim();
+    const imageUrl = directImageUrl(originalUrl);
+    return {
+      id: row.id || `portfolio-${index + 1}`,
+      title: String(row.title).trim(),
+      description: String(row.description || "").trim(),
+      status: String(row.status || "").trim(),
+      originalUrl,
+      mediaType: imageUrl ? "image" : "video",
+      mediaUrl: imageUrl || cloudinaryDirectUrl(originalUrl)
+    };
+  });
 
 const safePlay = async (video) => {
   if (!video) return;
@@ -94,6 +106,28 @@ const safePlay = async (video) => {
   video.defaultMuted = true;
   video.playsInline = true;
   try { await video.play(); } catch (_) {}
+};
+
+const applyActiveAspectRatio = () => {
+  if (!root) return;
+  const stage = root.querySelector(".portfolio-carousel__stage");
+  const activeSlide = root.querySelector("[data-portfolio-slide].is-active");
+  const media = activeSlide?.querySelector("video, img");
+  if (!stage || !media) return;
+
+  let width = 0;
+  let height = 0;
+  if (media.tagName === "VIDEO") {
+    width = media.videoWidth || 0;
+    height = media.videoHeight || 0;
+  } else {
+    width = media.naturalWidth || 0;
+    height = media.naturalHeight || 0;
+  }
+  if (!width || !height) return;
+
+  stage.style.aspectRatio = `${width} / ${height}`;
+  stage.dataset.orientation = height > width ? "portrait" : width > height ? "landscape" : "square";
 };
 
 const goTo = (index, announce = true) => {
@@ -125,16 +159,20 @@ const goTo = (index, announce = true) => {
   if (counter) counter.textContent = `${activeIndex + 1} / ${items.length}`;
   const status = root.querySelector("[data-portfolio-status]");
   if (announce && status) status.textContent = `${items[activeIndex].title} is now displayed.`;
+  requestAnimationFrame(applyActiveAspectRatio);
 };
 
 const next = () => goTo(activeIndex + 1);
 const previous = () => goTo(activeIndex - 1);
 
 const mediaMarkup = (item) => {
-  if (!item.videoUrl) {
-    return `<div class="portfolio-carousel__media-error"><strong>Video unavailable</strong><span>This entry needs a direct video URL or Cloudinary player URL.</span></div>`;
+  if (!item.mediaUrl) {
+    return `<div class="portfolio-carousel__media-error"><strong>Media unavailable</strong><span>This entry needs a public Cloudinary video or direct image/video URL.</span></div>`;
   }
-  return `<video class="portfolio-carousel__video" muted autoplay playsinline preload="metadata" aria-label="${escapeHtml(item.title)}"><source src="${escapeHtml(item.videoUrl)}" type="video/mp4"></video>`;
+  if (item.mediaType === "image") {
+    return `<img class="portfolio-carousel__video portfolio-carousel__image" src="${escapeHtml(item.mediaUrl)}" alt="${escapeHtml(item.title)}" loading="lazy">`;
+  }
+  return `<video class="portfolio-carousel__video" muted autoplay playsinline preload="metadata" aria-label="${escapeHtml(item.title)}"><source src="${escapeHtml(item.mediaUrl)}" type="video/mp4"></video>`;
 };
 
 const slideMarkup = (item, index) => `
@@ -156,16 +194,16 @@ const render = () => {
   root.setAttribute("aria-label", "Featured AI and video portfolio");
 
   if (!items.length) {
-    root.innerHTML = `<div class="portfolio-carousel__empty"><strong>No portfolio videos available yet.</strong><span>Add entries to portfolio-videos.json.</span></div>`;
+    root.innerHTML = `<div class="portfolio-carousel__empty"><strong>No portfolio media available yet.</strong><span>Add entries to portfolio-videos.json.</span></div>`;
     return;
   }
 
   root.innerHTML = `
     <div class="portfolio-carousel__stage">
       ${items.map(slideMarkup).join("")}
-      <button class="portfolio-carousel__floating-control portfolio-carousel__floating-control--prev" type="button" data-portfolio-prev aria-label="Previous portfolio video">←</button>
-      <button class="portfolio-carousel__floating-control portfolio-carousel__floating-control--next" type="button" data-portfolio-next aria-label="Next portfolio video">→</button>
-      <div class="portfolio-carousel__floating-nav" aria-label="Choose portfolio video">
+      <button class="portfolio-carousel__floating-control portfolio-carousel__floating-control--prev" type="button" data-portfolio-prev aria-label="Previous portfolio item">←</button>
+      <button class="portfolio-carousel__floating-control portfolio-carousel__floating-control--next" type="button" data-portfolio-next aria-label="Next portfolio item">→</button>
+      <div class="portfolio-carousel__floating-nav" aria-label="Choose portfolio item">
         <span class="portfolio-carousel__counter" data-portfolio-counter>1 / ${items.length}</span>
         <div class="portfolio-carousel__dots">${items.map((item, index) => `<button class="portfolio-carousel__dot${index === 0 ? " is-active" : ""}" type="button" data-portfolio-dot aria-label="Show ${escapeHtml(item.title)}" aria-current="${index === 0 ? "true" : "false"}"></button>`).join("")}</div>
       </div>
@@ -177,6 +215,9 @@ const render = () => {
   root.querySelectorAll("[data-portfolio-dot]").forEach((dot, index) => dot.addEventListener("click", () => goTo(index)));
 
   root.querySelectorAll("video").forEach((video) => {
+    video.addEventListener("loadedmetadata", () => {
+      if (video.closest("[data-portfolio-slide]")?.classList.contains("is-active")) applyActiveAspectRatio();
+    });
     video.addEventListener("ended", next);
     video.addEventListener("error", () => {
       const slide = video.closest("[data-portfolio-slide]");
@@ -185,6 +226,12 @@ const render = () => {
       error.className = "portfolio-carousel__media-error";
       error.innerHTML = "<strong>Video failed to load</strong><span>Please verify the Cloudinary asset is publicly accessible.</span>";
       slide.appendChild(error);
+    });
+  });
+
+  root.querySelectorAll("img.portfolio-carousel__image").forEach((image) => {
+    image.addEventListener("load", () => {
+      if (image.closest("[data-portfolio-slide]")?.classList.contains("is-active")) applyActiveAspectRatio();
     });
   });
 
@@ -208,27 +255,29 @@ const installStyles = () => {
   const style = document.createElement("style");
   style.id = "portfolio-carousel-v2-styles";
   style.textContent = `
-    .portfolio-carousel{position:relative;width:100%;overflow:hidden;border:1px solid rgba(78,9,17,.16);border-radius:26px;background:#260707;box-shadow:0 24px 64px rgba(78,9,17,.18);isolation:isolate}
-    .portfolio-carousel__stage{position:relative;width:100%;aspect-ratio:16/9;min-height:420px;background:#260707;overflow:hidden}
-    .portfolio-carousel__slide{position:absolute;inset:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .4s ease}
+    .portfolio-carousel{position:relative;width:100%;overflow:visible;border:0;border-radius:26px;background:transparent;box-shadow:none;isolation:isolate}
+    .portfolio-carousel__stage{position:relative;width:min(100%,1120px);margin-inline:auto;aspect-ratio:16/9;min-height:0;max-height:min(78vh,820px);background:#260707;overflow:visible;border-radius:26px;transition:aspect-ratio .35s ease,width .35s ease}
+    .portfolio-carousel__stage[data-orientation="portrait"]{width:min(68vw,440px);max-width:440px;aspect-ratio:9/16}
+    .portfolio-carousel__stage[data-orientation="square"]{width:min(72vw,680px);max-width:680px;aspect-ratio:1/1}
+    .portfolio-carousel__slide{position:absolute;inset:0;overflow:hidden;border-radius:inherit;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .4s ease}
     .portfolio-carousel__slide.is-active{opacity:1!important;visibility:visible!important;pointer-events:auto!important;z-index:2}
-    .portfolio-carousel__video{position:absolute;inset:0;display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;opacity:1!important;visibility:visible!important;background:#260707;border:0}
+    .portfolio-carousel__video{position:absolute;inset:0;display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;opacity:1!important;visibility:visible!important;background:#260707;border:0}
+    .portfolio-carousel__image{object-fit:contain!important}
     .portfolio-carousel__shade{position:absolute;inset:0;z-index:3;background:linear-gradient(180deg,rgba(38,7,7,.04) 0%,rgba(38,7,7,.08) 46%,rgba(38,7,7,.86) 100%),linear-gradient(90deg,rgba(38,7,7,.48) 0%,rgba(38,7,7,.06) 60%,transparent 82%);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s ease,visibility .26s ease}
     .portfolio-carousel__overlay{position:absolute;left:clamp(24px,5vw,64px);right:clamp(24px,5vw,64px);bottom:clamp(52px,7vw,82px);z-index:4;max-width:760px;color:#FAF1EC;text-shadow:0 3px 20px rgba(0,0,0,.45);opacity:0;visibility:hidden;transform:translateY(14px);pointer-events:none;transition:opacity .26s ease,visibility .26s ease,transform .26s ease}
     .portfolio-carousel__slide.is-active:hover .portfolio-carousel__shade,.portfolio-carousel__slide.is-active:focus-within .portfolio-carousel__shade,.portfolio-carousel:focus-visible .portfolio-carousel__slide.is-active .portfolio-carousel__shade{opacity:1;visibility:visible}
     .portfolio-carousel__slide.is-active:hover .portfolio-carousel__overlay,.portfolio-carousel__slide.is-active:focus-within .portfolio-carousel__overlay,.portfolio-carousel:focus-visible .portfolio-carousel__slide.is-active .portfolio-carousel__overlay{opacity:1;visibility:visible;transform:none}
-    .portfolio-carousel__overlay h3{margin:0;color:#FFFDFC!important;font-size:clamp(2rem,4.3vw,4.4rem);line-height:.98;letter-spacing:-.05em}.portfolio-carousel__overlay p{margin:18px 0 0;max-width:680px;color:rgba(255,253,252,.9);font-size:clamp(.95rem,1.45vw,1.18rem);line-height:1.6}
-    .portfolio-carousel__badge{display:inline-flex;margin-bottom:16px;padding:7px 11px;border:1px solid rgba(255,255,255,.24);border-radius:999px;background:rgba(78,9,17,.74);color:#FAF1EC;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(10px)}
-    .portfolio-carousel__toolbar{display:none!important}
-    .portfolio-carousel__floating-control{position:absolute;top:50%;z-index:7;display:grid;place-items:center;width:48px;height:48px;padding:0;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:rgba(38,7,7,.62);color:#fff;font-size:1.15rem;cursor:pointer;backdrop-filter:blur(10px);transform:translateY(-50%);transition:background .2s ease,transform .2s ease,opacity .2s ease}
+    .portfolio-carousel__overlay h3{margin:0;color:#FFFDFC!important;font-size:clamp(1.75rem,4vw,4rem);line-height:1;letter-spacing:-.045em}.portfolio-carousel__overlay p{margin:16px 0 0;max-width:680px;color:rgba(255,253,252,.9);font-size:clamp(.9rem,1.3vw,1.12rem);line-height:1.55}
+    .portfolio-carousel__badge{display:inline-flex;margin-bottom:14px;padding:7px 11px;border:1px solid rgba(255,255,255,.24);border-radius:999px;background:rgba(78,9,17,.74);color:#FAF1EC;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(10px)}
+    .portfolio-carousel__floating-control{position:absolute;top:50%;z-index:20;display:grid;place-items:center;width:48px;height:48px;padding:0;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:rgba(38,7,7,.56);color:#fff;font-size:1.15rem;cursor:pointer;backdrop-filter:blur(12px);transform:translateY(-50%);transition:background .2s ease,transform .2s ease}
     .portfolio-carousel__floating-control--prev{left:18px}.portfolio-carousel__floating-control--next{right:18px}.portfolio-carousel__floating-control:hover,.portfolio-carousel__floating-control:focus-visible{background:#4E0911;transform:translateY(-50%) scale(1.06);outline:2px solid rgba(255,255,255,.7);outline-offset:2px}
-    .portfolio-carousel__floating-nav{position:absolute;left:50%;bottom:16px;z-index:7;display:flex;align-items:center;gap:12px;padding:9px 14px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(38,7,7,.64);backdrop-filter:blur(10px);transform:translateX(-50%)}
-    .portfolio-carousel__counter{min-width:auto;color:rgba(255,255,255,.78);font-size:.72rem;font-weight:800}.portfolio-carousel__dots{display:flex;align-items:center;gap:7px}.portfolio-carousel__dot{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:rgba(255,255,255,.42);cursor:pointer;transition:width .2s ease,background .2s ease}.portfolio-carousel__dot.is-active{width:24px;background:#fff}.portfolio-carousel__dot:focus-visible{outline:2px solid #fff;outline-offset:3px}
+    .portfolio-carousel__floating-nav{position:absolute;left:50%;bottom:16px;z-index:20;display:flex;align-items:center;gap:12px;padding:9px 14px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(38,7,7,.58);backdrop-filter:blur(12px);transform:translateX(-50%)}
+    .portfolio-carousel__counter{color:rgba(255,255,255,.8);font-size:.72rem;font-weight:800}.portfolio-carousel__dots{display:flex;align-items:center;gap:7px}.portfolio-carousel__dot{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:rgba(255,255,255,.42);cursor:pointer;transition:width .2s ease,background .2s ease}.portfolio-carousel__dot.is-active{width:24px;background:#fff}.portfolio-carousel__dot:focus-visible{outline:2px solid #fff;outline-offset:3px}
     .portfolio-carousel__media-error{position:absolute;inset:0;z-index:5;display:grid;place-content:center;gap:8px;padding:30px;background:linear-gradient(145deg,#260707,#4E0911);color:#FAF1EC;text-align:center}.portfolio-carousel__media-error span{color:rgba(250,241,236,.82)}
     .portfolio-carousel__status{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.portfolio-carousel__empty{display:grid;place-items:center;gap:8px;min-height:360px;padding:42px;text-align:center;background:#FFFDFC;color:#2F2420}
-    @media(max-width:900px){.portfolio-carousel{border-radius:22px}.portfolio-carousel__stage{aspect-ratio:4/3;min-height:440px}.portfolio-carousel__floating-control{width:44px;height:44px}.portfolio-carousel__overlay{left:28px;right:28px;bottom:68px}}
-    @media(max-width:640px){.portfolio-carousel{border-radius:18px}.portfolio-carousel__stage{aspect-ratio:9/13;min-height:560px}.portfolio-carousel__floating-control{top:auto;bottom:14px;transform:none;width:42px;height:42px}.portfolio-carousel__floating-control:hover,.portfolio-carousel__floating-control:focus-visible{transform:scale(1.05)}.portfolio-carousel__floating-control--prev{left:14px}.portfolio-carousel__floating-control--next{right:14px}.portfolio-carousel__floating-nav{bottom:16px;padding:8px 11px}.portfolio-carousel__counter{display:none}.portfolio-carousel__overlay{left:20px;right:20px;bottom:82px}.portfolio-carousel__overlay h3{font-size:clamp(2rem,11vw,3rem)}.portfolio-carousel__overlay p{margin-top:12px;font-size:.92rem;line-height:1.5}}
-    @media(prefers-reduced-motion:reduce){.portfolio-carousel__slide,.portfolio-carousel__shade,.portfolio-carousel__overlay,.portfolio-carousel__dot,.portfolio-carousel__floating-control{transition:none}}
+    @media(max-width:900px){.portfolio-carousel__stage{width:min(94%,900px)}.portfolio-carousel__stage[data-orientation="portrait"]{width:min(76vw,420px)}.portfolio-carousel__floating-control{width:44px;height:44px}.portfolio-carousel__overlay{left:28px;right:28px;bottom:68px}}
+    @media(max-width:640px){.portfolio-carousel__stage{width:96%;max-height:none}.portfolio-carousel__stage[data-orientation="portrait"]{width:min(90vw,390px)}.portfolio-carousel__stage[data-orientation="square"]{width:92vw}.portfolio-carousel__floating-control{top:auto;bottom:14px;transform:none;width:42px;height:42px}.portfolio-carousel__floating-control:hover,.portfolio-carousel__floating-control:focus-visible{transform:scale(1.05)}.portfolio-carousel__floating-control--prev{left:14px}.portfolio-carousel__floating-control--next{right:14px}.portfolio-carousel__floating-nav{bottom:16px;padding:8px 11px}.portfolio-carousel__counter{display:none}.portfolio-carousel__overlay{left:20px;right:20px;bottom:82px}.portfolio-carousel__overlay h3{font-size:clamp(1.7rem,9vw,2.8rem)}.portfolio-carousel__overlay p{margin-top:12px;font-size:.9rem;line-height:1.48}}
+    @media(prefers-reduced-motion:reduce){.portfolio-carousel__stage,.portfolio-carousel__slide,.portfolio-carousel__shade,.portfolio-carousel__overlay,.portfolio-carousel__dot,.portfolio-carousel__floating-control{transition:none}}
   `;
   document.head.appendChild(style);
 };
@@ -247,8 +296,8 @@ const load = async () => {
     installStyles();
     render();
   } catch (error) {
-    console.error("Portfolio video data failed to load", error);
-    root.innerHTML = `<div class="portfolio-carousel__empty"><strong>Portfolio videos could not be loaded.</strong><span>Please refresh the page or try again shortly.</span></div>`;
+    console.error("Portfolio media data failed to load", error);
+    root.innerHTML = `<div class="portfolio-carousel__empty"><strong>Portfolio media could not be loaded.</strong><span>Please refresh the page or try again shortly.</span></div>`;
   }
 };
 
