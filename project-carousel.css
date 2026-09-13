@@ -99,7 +99,10 @@
   background:
     linear-gradient(180deg, rgba(38, 7, 7, .03) 0%, rgba(38, 7, 7, .08) 42%, rgba(38, 7, 7, .84) 100%),
     linear-gradient(90deg, rgba(38, 7, 7, .5) 0%, rgba(38, 7, 7, .05) 55%, rgba(38, 7, 7, 0) 78%);
+  opacity: 0;
+  visibility: hidden;
   pointer-events: none;
+  transition: opacity .28s ease, visibility .28s ease;
 }
 
 .portfolio-carousel__overlay {
@@ -111,7 +114,26 @@
   max-width: 760px;
   color: #FAF1EC;
   text-shadow: 0 3px 20px rgba(0, 0, 0, .45);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
   pointer-events: none;
+  transition: opacity .28s ease, visibility .28s ease, transform .28s ease;
+}
+
+.portfolio-carousel__slide.is-active:hover .portfolio-carousel__shade,
+.portfolio-carousel__slide.is-active:focus-within .portfolio-carousel__shade,
+.portfolio-carousel:focus-visible .portfolio-carousel__slide.is-active .portfolio-carousel__shade {
+  opacity: 1;
+  visibility: visible;
+}
+
+.portfolio-carousel__slide.is-active:hover .portfolio-carousel__overlay,
+.portfolio-carousel__slide.is-active:focus-within .portfolio-carousel__overlay,
+.portfolio-carousel:focus-visible .portfolio-carousel__slide.is-active .portfolio-carousel__overlay {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .portfolio-carousel__overlay h3 {
@@ -342,6 +364,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .portfolio-carousel__slide,
+  .portfolio-carousel__shade,
+  .portfolio-carousel__overlay,
   .portfolio-carousel__dot,
   .portfolio-carousel__control {
     transition: none;
