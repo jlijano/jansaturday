@@ -1,4 +1,9 @@
 (() => {
+  const servicesStyles = document.createElement('link');
+  servicesStyles.rel = 'stylesheet';
+  servicesStyles.href = 'services-fix.css';
+  document.head.appendChild(servicesStyles);
+
   const core = document.createElement('script');
   core.src = 'consultation-form-core.js';
   core.onload = () => {
