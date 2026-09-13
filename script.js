@@ -60,6 +60,11 @@ if ("IntersectionObserver" in window && !pageReduceMotion) {
 
 document.querySelector("[data-year]")?.replaceChildren(String(new Date().getFullYear()));
 
+const processModule = document.createElement("script");
+processModule.src = "how-i-work.js";
+processModule.defer = true;
+document.body.appendChild(processModule);
+
 const brandModule = document.createElement("script");
 brandModule.src = "brand-logo.js";
 brandModule.defer = true;
