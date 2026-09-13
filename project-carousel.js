@@ -7,10 +7,7 @@ const setupProfileIntro = () => {
   const heroGrid = document.querySelector(".hero-grid");
   const heroDescription = document.querySelector(".hero-description");
 
-  if (heroDescription) {
-    heroDescription.textContent = INTRO_DESCRIPTION;
-  }
-
+  if (heroDescription) heroDescription.textContent = INTRO_DESCRIPTION;
   if (!heroGrid || heroGrid.querySelector(".hero-intro-video")) return;
 
   const media = document.createElement("div");
@@ -27,86 +24,21 @@ const setupProfileIntro = () => {
         loading="eager"></iframe>
       <div class="hero-intro-video__label" aria-hidden="true">Who am I?</div>
     </div>`;
-
   heroGrid.appendChild(media);
 
   if (!document.querySelector("#hero-intro-video-styles")) {
     const style = document.createElement("style");
     style.id = "hero-intro-video-styles";
     style.textContent = `
-      .hero .hero-grid{
-        grid-template-columns:minmax(0,1fr) minmax(320px,.72fr) !important;
-        max-width:1180px;
-        margin-inline:auto;
-        gap:clamp(42px,6vw,88px);
-        align-items:center;
-      }
-      .hero .hero-copy{max-width:620px;}
-      .hero .hero-description{max-width:560px;}
-      .hero-intro-video{
-        width:100%;
-        max-width:360px;
-        justify-self:center;
-      }
-      .hero-intro-video__frame{
-        position:relative;
-        width:100%;
-        aspect-ratio:9/16;
-        overflow:hidden;
-        border:1px solid rgba(78,9,17,.2);
-        border-radius:26px;
-        background:#260707;
-        box-shadow:0 28px 70px rgba(78,9,17,.16);
-      }
-      .hero-intro-video__frame::after{
-        content:"";
-        position:absolute;
-        inset:0;
-        pointer-events:none;
-        border-radius:inherit;
-        box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
-      }
-      .hero-intro-video iframe{
-        display:block;
-        width:100%;
-        height:100%;
-        border:0;
-        background:#260707;
-      }
-      .hero-intro-video__label{
-        position:absolute;
-        left:14px;
-        top:14px;
-        bottom:auto;
-        z-index:3;
-        padding:8px 12px;
-        border:1px solid rgba(255,255,255,.2);
-        border-radius:999px;
-        background:rgba(78,9,17,.8);
-        color:#FAF1EC;
-        font-size:.76rem;
-        font-weight:800;
-        letter-spacing:.06em;
-        text-transform:uppercase;
-        backdrop-filter:blur(10px);
-        pointer-events:none;
-      }
-      @media(max-width:1024px){
-        .hero .hero-grid{
-          grid-template-columns:1fr !important;
-          max-width:820px;
-          gap:44px;
-        }
-        .hero-intro-video{
-          max-width:360px;
-          justify-self:center;
-        }
-      }
-      @media(max-width:640px){
-        .hero-intro-video__frame{border-radius:18px;}
-        .hero-intro-video{max-width:320px;}
-        .hero-intro-video__label{left:12px;top:12px;bottom:auto;font-size:.68rem;}
-      }
+      .hero .hero-grid{grid-template-columns:minmax(0,1fr) minmax(320px,.72fr)!important;max-width:1180px;margin-inline:auto;gap:clamp(42px,6vw,88px);align-items:center}
+      .hero .hero-copy{max-width:620px}.hero .hero-description{max-width:560px}
+      .hero-intro-video{width:100%;max-width:360px;justify-self:center}
+      .hero-intro-video__frame{position:relative;width:100%;aspect-ratio:9/16;overflow:hidden;border:1px solid rgba(78,9,17,.2);border-radius:26px;background:#260707;box-shadow:0 28px 70px rgba(78,9,17,.16)}
+      .hero-intro-video__frame::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+      .hero-intro-video iframe{display:block;width:100%;height:100%;border:0;background:#260707}
+      .hero-intro-video__label{position:absolute;left:14px;top:14px;z-index:3;padding:8px 12px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(78,9,17,.8);color:#FAF1EC;font-size:.76rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;backdrop-filter:blur(10px);pointer-events:none}
+      @media(max-width:1024px){.hero .hero-grid{grid-template-columns:1fr!important;max-width:820px;gap:44px}.hero-intro-video{max-width:360px;justify-self:center}}
+      @media(max-width:640px){.hero-intro-video__frame{border-radius:18px}.hero-intro-video{max-width:320px}.hero-intro-video__label{left:12px;top:12px;font-size:.68rem}}
     `;
     document.head.appendChild(style);
   }
@@ -114,14 +46,12 @@ const setupProfileIntro = () => {
 
 setupProfileIntro();
 
-const projectCarousel = document.querySelector("[data-project-carousel]");
-const projectsSectionTitle = document.querySelector("#projects-title");
+const root = document.querySelector("[data-project-carousel]");
 const DATA_URL = "portfolio-videos.json";
 const REFRESH_INTERVAL_MS = 60000;
-
-if (projectsSectionTitle) {
-  projectsSectionTitle.textContent = "Featured AI & Video Portfolio";
-}
+let items = [];
+let activeIndex = 0;
+let dataSignature = "";
 
 const escapeHtml = (value = "") => String(value)
   .replaceAll("&", "&amp;")
@@ -130,306 +60,200 @@ const escapeHtml = (value = "") => String(value)
   .replaceAll('"', "&quot;")
   .replaceAll("'", "&#039;");
 
-const getGoogleDriveId = (url = "") => {
-  const value = String(url);
-  const match = value.match(/\/d\/([a-zA-Z0-9_-]+)/) || value.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  return match ? match[1] : "";
-};
-
-const isCloudinaryPlayerUrl = (url = "") => {
+const cloudinaryDirectUrl = (input = "") => {
   try {
-    return new URL(String(url).trim()).hostname === "player.cloudinary.com";
-  } catch (_) {
-    return false;
-  }
+    const url = new URL(String(input).trim());
+    if (url.hostname === "player.cloudinary.com") {
+      const cloudName = url.searchParams.get("cloud_name");
+      const publicId = url.searchParams.get("public_id");
+      if (cloudName && publicId) {
+        const encodedId = publicId.split("/").map(encodeURIComponent).join("/");
+        return `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/video/upload/f_auto,q_auto/${encodedId}.mp4`;
+      }
+    }
+    if (url.hostname.endsWith("cloudinary.com") && /\.(mp4|webm|ogg)(?:$|\?)/i.test(url.href)) return url.href;
+    if (/\.(mp4|webm|ogg)(?:$|\?)/i.test(url.href)) return url.href;
+  } catch (_) {}
+  return "";
 };
 
-const getCloudinaryEmbedUrl = (url = "") => {
-  try {
-    const parsed = new URL(String(url).trim());
-    if (parsed.hostname !== "player.cloudinary.com") return "";
-    parsed.searchParams.set("autoplay", "true");
-    parsed.searchParams.set("muted", "true");
-    return parsed.toString();
-  } catch (_) {
-    return "";
-  }
-};
-
-const isDirectVideoUrl = (url = "") => {
-  const value = String(url).toLowerCase();
-  return /\.(mp4|webm|ogg)(\?|#|$)/.test(value) || value.includes("res.cloudinary.com/") || value.includes("cdn.");
-};
-
-const getDrivePreviewUrl = (url = "") => {
-  const driveId = getGoogleDriveId(url);
-  return driveId ? `https://drive.google.com/file/d/${driveId}/preview?autoplay=1` : "";
-};
-
-const normalizeRows = (rows) => (Array.isArray(rows) ? rows : [])
-  .filter((item) => item && item.title && item.videoLink)
-  .map((item, index) => ({
-    id: item.id || `portfolio-video-${index + 1}`,
-    title: String(item.title).trim(),
-    description: String(item.description || "").trim(),
-    videoLink: String(item.videoLink).trim(),
-    status: String(item.status || "").trim()
+const normalize = (rows) => (Array.isArray(rows) ? rows : [])
+  .filter((row) => row && row.title && row.videoLink)
+  .map((row, index) => ({
+    id: row.id || `portfolio-${index + 1}`,
+    title: String(row.title).trim(),
+    description: String(row.description || "").trim(),
+    status: String(row.status || "").trim(),
+    originalUrl: String(row.videoLink).trim(),
+    videoUrl: cloudinaryDirectUrl(row.videoLink)
   }));
-
-let videos = [];
-let activeIndex = 0;
-let lastDataSignature = "";
-
-const getActiveNativeVideo = () => projectCarousel?.querySelector(".portfolio-carousel__slide.is-active video");
 
 const safePlay = async (video) => {
   if (!video) return;
   video.muted = true;
   video.defaultMuted = true;
   video.playsInline = true;
-  try {
-    await video.play();
-  } catch (_) {
-    /* Browser autoplay policies may still require user interaction. */
-  }
+  try { await video.play(); } catch (_) {}
 };
 
-const stopAllNativeVideos = () => {
-  projectCarousel?.querySelectorAll("video").forEach((video) => {
-    video.pause();
-    video.currentTime = 0;
-  });
-};
+const goTo = (index, announce = true) => {
+  if (!root || !items.length) return;
+  activeIndex = (index + items.length) % items.length;
 
-const refreshEmbeddedFrames = () => {
-  if (!projectCarousel) return;
-  projectCarousel.querySelectorAll(".portfolio-carousel__embed").forEach((frame) => {
-    const slide = frame.closest(".portfolio-carousel__slide");
-    const shouldPlay = slide?.classList.contains("is-active");
-    const source = frame.dataset.src || "";
-
-    if (shouldPlay && source && frame.src !== source) {
-      frame.src = source;
-    } else if (!shouldPlay && frame.src && frame.src !== "about:blank") {
-      frame.src = "about:blank";
-    }
-  });
-};
-
-const setActiveSlide = (index, { announce = true } = {}) => {
-  if (!projectCarousel || videos.length === 0) return;
-
-  activeIndex = (index + videos.length) % videos.length;
-  const slides = [...projectCarousel.querySelectorAll(".portfolio-carousel__slide")];
-  const dots = [...projectCarousel.querySelectorAll(".portfolio-carousel__dot")];
-
-  slides.forEach((slide, slideIndex) => {
-    const active = slideIndex === activeIndex;
-    slide.classList.toggle("is-active", active);
-    slide.setAttribute("aria-hidden", String(!active));
-
+  root.querySelectorAll("[data-portfolio-slide]").forEach((slide, i) => {
+    const isActive = i === activeIndex;
+    slide.classList.toggle("is-active", isActive);
+    slide.setAttribute("aria-hidden", String(!isActive));
     const video = slide.querySelector("video");
-    if (video) {
-      if (active) {
-        video.muted = true;
-        video.defaultMuted = true;
-        video.setAttribute("muted", "");
-        video.setAttribute("autoplay", "");
-        safePlay(video);
-      } else {
-        video.pause();
-        video.currentTime = 0;
-      }
+    if (!video) return;
+    if (isActive) {
+      video.currentTime = 0;
+      safePlay(video);
+    } else {
+      video.pause();
+      video.currentTime = 0;
     }
   });
 
-  refreshEmbeddedFrames();
-
-  dots.forEach((dot, dotIndex) => {
-    const active = dotIndex === activeIndex;
-    dot.classList.toggle("is-active", active);
-    dot.setAttribute("aria-current", active ? "true" : "false");
+  root.querySelectorAll("[data-portfolio-dot]").forEach((dot, i) => {
+    const current = i === activeIndex;
+    dot.classList.toggle("is-active", current);
+    dot.setAttribute("aria-current", current ? "true" : "false");
   });
 
-  const counter = projectCarousel.querySelector("[data-portfolio-counter]");
-  if (counter) counter.textContent = `${activeIndex + 1} / ${videos.length}`;
-
-  const status = projectCarousel.querySelector("[data-portfolio-status]");
-  if (announce && status) status.textContent = `${videos[activeIndex].title} is now displayed.`;
+  const counter = root.querySelector("[data-portfolio-counter]");
+  if (counter) counter.textContent = `${activeIndex + 1} / ${items.length}`;
+  const status = root.querySelector("[data-portfolio-status]");
+  if (announce && status) status.textContent = `${items[activeIndex].title} is now displayed.`;
 };
 
-const showNext = () => setActiveSlide(activeIndex + 1);
-const showPrevious = () => setActiveSlide(activeIndex - 1);
+const next = () => goTo(activeIndex + 1);
+const previous = () => goTo(activeIndex - 1);
 
-const bindCarouselEvents = () => {
-  if (!projectCarousel) return;
-
-  projectCarousel.querySelector("[data-portfolio-next]")?.addEventListener("click", showNext);
-  projectCarousel.querySelector("[data-portfolio-prev]")?.addEventListener("click", showPrevious);
-
-  projectCarousel.querySelectorAll(".portfolio-carousel__dot").forEach((dot, index) => {
-    dot.addEventListener("click", () => setActiveSlide(index));
-  });
-
-  projectCarousel.querySelectorAll("video").forEach((video) => {
-    video.addEventListener("ended", () => {
-      if (videos.length > 1) showNext();
-      else {
-        video.currentTime = 0;
-        safePlay(video);
-      }
-    });
-  });
-
-  projectCarousel.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowRight") {
-      event.preventDefault();
-      showNext();
-    }
-    if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      showPrevious();
-    }
-  });
-
-  let touchStartX = 0;
-  projectCarousel.addEventListener("touchstart", (event) => {
-    touchStartX = event.changedTouches[0]?.clientX ?? 0;
-  }, { passive: true });
-
-  projectCarousel.addEventListener("touchend", (event) => {
-    const touchEndX = event.changedTouches[0]?.clientX ?? 0;
-    const distance = touchEndX - touchStartX;
-    if (Math.abs(distance) < 45) return;
-    if (distance < 0) showNext();
-    else showPrevious();
-  }, { passive: true });
-
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stopAllNativeVideos();
-    else {
-      safePlay(getActiveNativeVideo());
-      refreshEmbeddedFrames();
-    }
-  });
-
-  document.addEventListener("pointerdown", () => safePlay(getActiveNativeVideo()), { once: true });
-  document.addEventListener("keydown", () => safePlay(getActiveNativeVideo()), { once: true });
-};
-
-const createNativeVideoMarkup = (url, item) => `
-  <video class="portfolio-carousel__video" muted autoplay playsinline preload="auto"${videos.length === 1 ? " loop" : ""} aria-label="${escapeHtml(item.title)}">
-    <source src="${escapeHtml(url)}" type="video/mp4">
-    Your browser does not support HTML5 video.
-  </video>`;
-
-const createMediaMarkup = (item, index) => {
-  if (isCloudinaryPlayerUrl(item.videoLink)) {
-    const embedUrl = getCloudinaryEmbedUrl(item.videoLink);
-    return `<iframe class="portfolio-carousel__video portfolio-carousel__embed portfolio-carousel__cloudinary" src="${index === 0 ? escapeHtml(embedUrl) : "about:blank"}" data-src="${escapeHtml(embedUrl)}" title="${escapeHtml(item.title)}" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen frameborder="0" loading="${index === 0 ? "eager" : "lazy"}"></iframe>`;
+const mediaMarkup = (item) => {
+  if (!item.videoUrl) {
+    return `<div class="portfolio-carousel__media-error"><strong>Video unavailable</strong><span>This entry needs a direct video URL or Cloudinary player URL.</span></div>`;
   }
-
-  const drivePreview = getDrivePreviewUrl(item.videoLink);
-  if (drivePreview) {
-    return `<iframe class="portfolio-carousel__video portfolio-carousel__embed portfolio-carousel__drive" src="${index === 0 ? escapeHtml(drivePreview) : "about:blank"}" data-src="${escapeHtml(drivePreview)}" title="${escapeHtml(item.title)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen frameborder="0" loading="${index === 0 ? "eager" : "lazy"}"></iframe>`;
-  }
-
-  if (isDirectVideoUrl(item.videoLink)) {
-    return createNativeVideoMarkup(item.videoLink, item);
-  }
-
-  return `<div class="portfolio-carousel__media-error" role="note">
-    <strong>Video preview unavailable</strong>
-    <span>This portfolio entry needs a Cloudinary player URL, direct MP4/CDN URL, or a public Google Drive video link.</span>
-  </div>`;
+  return `<video class="portfolio-carousel__video" muted autoplay playsinline preload="metadata" aria-label="${escapeHtml(item.title)}"><source src="${escapeHtml(item.videoUrl)}" type="video/mp4"></video>`;
 };
 
-const createSlideMarkup = (item, index) => {
-  const statusMarkup = item.status
-    ? `<span class="portfolio-carousel__badge">${escapeHtml(item.status)}</span>`
-    : "";
+const slideMarkup = (item, index) => `
+  <article class="portfolio-carousel__slide${index === 0 ? " is-active" : ""}" data-portfolio-slide aria-hidden="${index === 0 ? "false" : "true"}">
+    ${mediaMarkup(item)}
+    <div class="portfolio-carousel__shade" aria-hidden="true"></div>
+    <div class="portfolio-carousel__overlay">
+      ${item.status ? `<span class="portfolio-carousel__badge">${escapeHtml(item.status)}</span>` : ""}
+      <h3>${escapeHtml(item.title)}</h3>
+      ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}
+    </div>
+  </article>`;
 
-  return `
-    <article class="portfolio-carousel__slide${index === 0 ? " is-active" : ""}" aria-hidden="${index === 0 ? "false" : "true"}" data-portfolio-slide>
-      ${createMediaMarkup(item, index)}
-      <div class="portfolio-carousel__shade" aria-hidden="true"></div>
-      <div class="portfolio-carousel__overlay">
-        ${statusMarkup}
-        <h3>${escapeHtml(item.title)}</h3>
-        ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}
-      </div>
-    </article>`;
-};
+const render = () => {
+  if (!root) return;
+  root.className = "portfolio-carousel reveal is-visible";
+  root.setAttribute("tabindex", "0");
+  root.setAttribute("aria-roledescription", "carousel");
+  root.setAttribute("aria-label", "Featured AI and video portfolio");
 
-const renderCarousel = () => {
-  if (!projectCarousel) return;
-
-  projectCarousel.className = "portfolio-carousel reveal";
-  projectCarousel.removeAttribute("data-project-carousel");
-  projectCarousel.setAttribute("tabindex", "0");
-  projectCarousel.setAttribute("aria-roledescription", "carousel");
-  projectCarousel.setAttribute("aria-label", "Featured AI and video portfolio");
-
-  if (videos.length === 0) {
-    projectCarousel.innerHTML = `
-      <div class="portfolio-carousel__empty">
-        <strong>No portfolio videos available yet.</strong>
-        <span>Add a Title, Description and Video Link to the portfolio tracker.</span>
-      </div>`;
+  if (!items.length) {
+    root.innerHTML = `<div class="portfolio-carousel__empty"><strong>No portfolio videos available yet.</strong><span>Add entries to portfolio-videos.json.</span></div>`;
     return;
   }
 
-  const dots = videos.map((item, index) => `
-    <button class="portfolio-carousel__dot${index === 0 ? " is-active" : ""}" type="button" aria-label="Show ${escapeHtml(item.title)}" aria-current="${index === 0 ? "true" : "false"}"></button>`).join("");
-
-  projectCarousel.innerHTML = `
+  root.innerHTML = `
     <div class="portfolio-carousel__stage">
-      ${videos.map(createSlideMarkup).join("")}
-    </div>
-    <div class="portfolio-carousel__toolbar">
-      <div class="portfolio-carousel__dots" aria-label="Choose portfolio video">${dots}</div>
-      <div class="portfolio-carousel__nav">
-        <span class="portfolio-carousel__counter" data-portfolio-counter>1 / ${videos.length}</span>
-        <button class="portfolio-carousel__control" type="button" data-portfolio-prev aria-label="Previous portfolio video">←</button>
-        <button class="portfolio-carousel__control" type="button" data-portfolio-next aria-label="Next portfolio video">→</button>
+      ${items.map(slideMarkup).join("")}
+      <button class="portfolio-carousel__floating-control portfolio-carousel__floating-control--prev" type="button" data-portfolio-prev aria-label="Previous portfolio video">←</button>
+      <button class="portfolio-carousel__floating-control portfolio-carousel__floating-control--next" type="button" data-portfolio-next aria-label="Next portfolio video">→</button>
+      <div class="portfolio-carousel__floating-nav" aria-label="Choose portfolio video">
+        <span class="portfolio-carousel__counter" data-portfolio-counter>1 / ${items.length}</span>
+        <div class="portfolio-carousel__dots">${items.map((item, index) => `<button class="portfolio-carousel__dot${index === 0 ? " is-active" : ""}" type="button" data-portfolio-dot aria-label="Show ${escapeHtml(item.title)}" aria-current="${index === 0 ? "true" : "false"}"></button>`).join("")}</div>
       </div>
     </div>
     <p class="portfolio-carousel__status" data-portfolio-status aria-live="polite"></p>`;
 
-  if (videos.length === 1) {
-    projectCarousel.querySelector(".portfolio-carousel__toolbar")?.classList.add("is-single");
-  }
+  root.querySelector("[data-portfolio-next]")?.addEventListener("click", next);
+  root.querySelector("[data-portfolio-prev]")?.addEventListener("click", previous);
+  root.querySelectorAll("[data-portfolio-dot]").forEach((dot, index) => dot.addEventListener("click", () => goTo(index)));
 
-  bindCarouselEvents();
-  setActiveSlide(Math.min(activeIndex, videos.length - 1), { announce: false });
+  root.querySelectorAll("video").forEach((video) => {
+    video.addEventListener("ended", next);
+    video.addEventListener("error", () => {
+      const slide = video.closest("[data-portfolio-slide]");
+      if (!slide || slide.querySelector(".portfolio-carousel__media-error")) return;
+      const error = document.createElement("div");
+      error.className = "portfolio-carousel__media-error";
+      error.innerHTML = "<strong>Video failed to load</strong><span>Please verify the Cloudinary asset is publicly accessible.</span>";
+      slide.appendChild(error);
+    });
+  });
+
+  root.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowRight") { event.preventDefault(); next(); }
+    if (event.key === "ArrowLeft") { event.preventDefault(); previous(); }
+  });
+
+  let touchStartX = 0;
+  root.addEventListener("touchstart", (event) => { touchStartX = event.changedTouches[0]?.clientX ?? 0; }, { passive: true });
+  root.addEventListener("touchend", (event) => {
+    const delta = (event.changedTouches[0]?.clientX ?? 0) - touchStartX;
+    if (Math.abs(delta) > 45) delta < 0 ? next() : previous();
+  }, { passive: true });
+
+  requestAnimationFrame(() => goTo(Math.min(activeIndex, items.length - 1), false));
 };
 
-const loadPortfolioData = async ({ initial = false } = {}) => {
+const installStyles = () => {
+  if (document.querySelector("#portfolio-carousel-v2-styles")) return;
+  const style = document.createElement("style");
+  style.id = "portfolio-carousel-v2-styles";
+  style.textContent = `
+    .portfolio-carousel{position:relative;width:100%;overflow:hidden;border:1px solid rgba(78,9,17,.16);border-radius:26px;background:#260707;box-shadow:0 24px 64px rgba(78,9,17,.18);isolation:isolate}
+    .portfolio-carousel__stage{position:relative;width:100%;aspect-ratio:16/9;min-height:420px;background:#260707;overflow:hidden}
+    .portfolio-carousel__slide{position:absolute;inset:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .4s ease}
+    .portfolio-carousel__slide.is-active{opacity:1!important;visibility:visible!important;pointer-events:auto!important;z-index:2}
+    .portfolio-carousel__video{position:absolute;inset:0;display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;opacity:1!important;visibility:visible!important;background:#260707;border:0}
+    .portfolio-carousel__shade{position:absolute;inset:0;z-index:3;background:linear-gradient(180deg,rgba(38,7,7,.04) 0%,rgba(38,7,7,.08) 46%,rgba(38,7,7,.86) 100%),linear-gradient(90deg,rgba(38,7,7,.48) 0%,rgba(38,7,7,.06) 60%,transparent 82%);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s ease,visibility .26s ease}
+    .portfolio-carousel__overlay{position:absolute;left:clamp(24px,5vw,64px);right:clamp(24px,5vw,64px);bottom:clamp(52px,7vw,82px);z-index:4;max-width:760px;color:#FAF1EC;text-shadow:0 3px 20px rgba(0,0,0,.45);opacity:0;visibility:hidden;transform:translateY(14px);pointer-events:none;transition:opacity .26s ease,visibility .26s ease,transform .26s ease}
+    .portfolio-carousel__slide.is-active:hover .portfolio-carousel__shade,.portfolio-carousel__slide.is-active:focus-within .portfolio-carousel__shade,.portfolio-carousel:focus-visible .portfolio-carousel__slide.is-active .portfolio-carousel__shade{opacity:1;visibility:visible}
+    .portfolio-carousel__slide.is-active:hover .portfolio-carousel__overlay,.portfolio-carousel__slide.is-active:focus-within .portfolio-carousel__overlay,.portfolio-carousel:focus-visible .portfolio-carousel__slide.is-active .portfolio-carousel__overlay{opacity:1;visibility:visible;transform:none}
+    .portfolio-carousel__overlay h3{margin:0;color:#FFFDFC!important;font-size:clamp(2rem,4.3vw,4.4rem);line-height:.98;letter-spacing:-.05em}.portfolio-carousel__overlay p{margin:18px 0 0;max-width:680px;color:rgba(255,253,252,.9);font-size:clamp(.95rem,1.45vw,1.18rem);line-height:1.6}
+    .portfolio-carousel__badge{display:inline-flex;margin-bottom:16px;padding:7px 11px;border:1px solid rgba(255,255,255,.24);border-radius:999px;background:rgba(78,9,17,.74);color:#FAF1EC;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(10px)}
+    .portfolio-carousel__toolbar{display:none!important}
+    .portfolio-carousel__floating-control{position:absolute;top:50%;z-index:7;display:grid;place-items:center;width:48px;height:48px;padding:0;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:rgba(38,7,7,.62);color:#fff;font-size:1.15rem;cursor:pointer;backdrop-filter:blur(10px);transform:translateY(-50%);transition:background .2s ease,transform .2s ease,opacity .2s ease}
+    .portfolio-carousel__floating-control--prev{left:18px}.portfolio-carousel__floating-control--next{right:18px}.portfolio-carousel__floating-control:hover,.portfolio-carousel__floating-control:focus-visible{background:#4E0911;transform:translateY(-50%) scale(1.06);outline:2px solid rgba(255,255,255,.7);outline-offset:2px}
+    .portfolio-carousel__floating-nav{position:absolute;left:50%;bottom:16px;z-index:7;display:flex;align-items:center;gap:12px;padding:9px 14px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(38,7,7,.64);backdrop-filter:blur(10px);transform:translateX(-50%)}
+    .portfolio-carousel__counter{min-width:auto;color:rgba(255,255,255,.78);font-size:.72rem;font-weight:800}.portfolio-carousel__dots{display:flex;align-items:center;gap:7px}.portfolio-carousel__dot{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:rgba(255,255,255,.42);cursor:pointer;transition:width .2s ease,background .2s ease}.portfolio-carousel__dot.is-active{width:24px;background:#fff}.portfolio-carousel__dot:focus-visible{outline:2px solid #fff;outline-offset:3px}
+    .portfolio-carousel__media-error{position:absolute;inset:0;z-index:5;display:grid;place-content:center;gap:8px;padding:30px;background:linear-gradient(145deg,#260707,#4E0911);color:#FAF1EC;text-align:center}.portfolio-carousel__media-error span{color:rgba(250,241,236,.82)}
+    .portfolio-carousel__status{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.portfolio-carousel__empty{display:grid;place-items:center;gap:8px;min-height:360px;padding:42px;text-align:center;background:#FFFDFC;color:#2F2420}
+    @media(max-width:900px){.portfolio-carousel{border-radius:22px}.portfolio-carousel__stage{aspect-ratio:4/3;min-height:440px}.portfolio-carousel__floating-control{width:44px;height:44px}.portfolio-carousel__overlay{left:28px;right:28px;bottom:68px}}
+    @media(max-width:640px){.portfolio-carousel{border-radius:18px}.portfolio-carousel__stage{aspect-ratio:9/13;min-height:560px}.portfolio-carousel__floating-control{top:auto;bottom:14px;transform:none;width:42px;height:42px}.portfolio-carousel__floating-control:hover,.portfolio-carousel__floating-control:focus-visible{transform:scale(1.05)}.portfolio-carousel__floating-control--prev{left:14px}.portfolio-carousel__floating-control--next{right:14px}.portfolio-carousel__floating-nav{bottom:16px;padding:8px 11px}.portfolio-carousel__counter{display:none}.portfolio-carousel__overlay{left:20px;right:20px;bottom:82px}.portfolio-carousel__overlay h3{font-size:clamp(2rem,11vw,3rem)}.portfolio-carousel__overlay p{margin-top:12px;font-size:.92rem;line-height:1.5}}
+    @media(prefers-reduced-motion:reduce){.portfolio-carousel__slide,.portfolio-carousel__shade,.portfolio-carousel__overlay,.portfolio-carousel__dot,.portfolio-carousel__floating-control{transition:none}}
+  `;
+  document.head.appendChild(style);
+};
+
+const load = async () => {
+  if (!root) return;
   try {
     const response = await fetch(`${DATA_URL}?v=${Date.now()}`, { cache: "no-store" });
-    if (!response.ok) throw new Error(`Portfolio data returned ${response.status}`);
-    const rows = normalizeRows(await response.json());
-    const signature = JSON.stringify(rows);
-
-    if (initial || signature !== lastDataSignature) {
-      lastDataSignature = signature;
-      videos = rows;
-      activeIndex = 0;
-      renderCarousel();
-    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const nextItems = normalize(await response.json());
+    const signature = JSON.stringify(nextItems);
+    if (signature === dataSignature) return;
+    dataSignature = signature;
+    items = nextItems;
+    activeIndex = Math.min(activeIndex, Math.max(0, items.length - 1));
+    installStyles();
+    render();
   } catch (error) {
-    console.error("Unable to load portfolio video data:", error);
-    if (initial && projectCarousel) {
-      projectCarousel.innerHTML = `
-        <div class="portfolio-carousel__empty">
-          <strong>Portfolio videos could not be loaded.</strong>
-          <span>Please check the portfolio tracker data and video URL.</span>
-        </div>`;
-    }
+    console.error("Portfolio video data failed to load", error);
+    root.innerHTML = `<div class="portfolio-carousel__empty"><strong>Portfolio videos could not be loaded.</strong><span>Please refresh the page or try again shortly.</span></div>`;
   }
 };
 
-if (projectCarousel) {
-  loadPortfolioData({ initial: true });
-  window.setInterval(() => loadPortfolioData(), REFRESH_INTERVAL_MS);
+if (root) {
+  installStyles();
+  load();
+  window.setInterval(load, REFRESH_INTERVAL_MS);
 }
